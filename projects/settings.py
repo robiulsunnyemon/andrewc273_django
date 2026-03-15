@@ -34,6 +34,8 @@ CORS_ALLOW_METHODS = ['DELETE','GET','OPTIONS','PATCH','POST','PUT']
 # Application definition
 
 INSTALLED_APPS = [
+    
+    'daphne',
     'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    
 
     #add by sakhawat
     'rest_framework',
@@ -50,7 +54,9 @@ INSTALLED_APPS = [
 
     'apps.users',
     'apps.subscription',
+    #Add
     'apps.chats',
+    'channels',
 
 
 ]
@@ -108,6 +114,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'projects.wsgi.application'
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
 
 
 # Database

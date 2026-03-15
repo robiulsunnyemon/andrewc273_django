@@ -73,7 +73,7 @@ class LoginView(BaseAPIView):
                 return self.error_response("Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
             
             tokens = get_tokens_for_user(user)
-            return self.success_response("Login successful", data={"tokens": tokens})
+            return self.success_response("Login successful", data={"tokens": tokens, "user": {"id": user.id,"email": user.email}} )
         return self.error_response("Invalid data", status_code=status.HTTP_400_BAD_REQUEST)
 
 

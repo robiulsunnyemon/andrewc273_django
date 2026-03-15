@@ -4,6 +4,15 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
+
+class UserStatusSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', read_only=True)
+
+    class Meta:
+        model = UserStatus
+        fields = ['id', 'email', 'is_online', 'last_seen']
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

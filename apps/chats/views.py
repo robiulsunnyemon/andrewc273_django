@@ -1,48 +1,90 @@
 from django.shortcuts import get_object_or_404, render
 
 # Create your views here.
+from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Room, Message, UserStatus
-from .serializers import RoomSerializer, MessageSerializer, RoomDetailSerializer, User
+from .serializers import RoomSerializer, MessageSerializer, RoomDetailSerializer, User,UserStatusSerializer
 from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
 
 
+# class RoomListCreateView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+        
+#         rooms = Room.objects.filter(
+#             Q(user_1=request.user) | Q(user_2=request.user)
+#         ).order_by('-updated_at')
+#         serializer = RoomSerializer(rooms, many=True)
+#         return Response(serializer.data)
+
+#     def post(self, request):
+#         user_2_id = request.data.get("other_user_id") or request.data.get("user_2")
+        
+#         if not user_2_id:
+#             return Response({"error": "Target user ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+#         user_1 = request.user
+#         user_2 = get_object_or_404(User, id=user_2_id)
+
+
+#         room = Room.objects.filter(
+#             (Q(user_1=user_1) & Q(user_2=user_2)) | 
+#             (Q(user_1=user_2) & Q(user_2=user_1))
+#         ).first()
+
+#         if room:
+#             serializer = RoomSerializer(room)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+
+#         ids = sorted([user_1.id, user_2.id])
+#         room = Room.objects.create(user_1_id=ids[0], user_2_id=ids[1])
+        
+#         serializer = RoomSerializer(room)
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 class RoomListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        
         rooms = Room.objects.filter(
             Q(user_1=request.user) | Q(user_2=request.user)
-        ).order_by('-updated_at')
+        )
         serializer = RoomSerializer(rooms, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        user_2_id = request.data.get("other_user_id") or request.data.get("user_2")
-        
+        user_2_id = request.data.get("user_2")
+
         if not user_2_id:
-            return Response({"error": "Target user ID is required."}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response(
+                {"error": "user_2 is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         user_1 = request.user
-        user_2 = get_object_or_404(User, id=user_2_id)
-
+        try:
+            user_2 = User.objects.get(id=user_2_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User does not exist."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         room = Room.objects.filter(
-            (Q(user_1=user_1) & Q(user_2=user_2)) | 
-            (Q(user_1=user_2) & Q(user_2=user_1))
+            Q(user_1=user_1, user_2=user_2) |
+            Q(user_1=user_2, user_2=user_1)
         ).first()
 
         if room:
             serializer = RoomSerializer(room)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        ids = sorted([user_1.id, user_2.id])
-        room = Room.objects.create(user_1_id=ids[0], user_2_id=ids[1])
-        
+        room = Room.objects.create(user_1=user_1, user_2=user_2)
         serializer = RoomSerializer(room)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
@@ -58,4 +100,35 @@ class RoomDetailView(APIView):
         
         serializer = RoomDetailSerializer(room)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+   
     
+
+    def get(self, request, user_id=None):
+        if user_id:
+            
+            status_obj = UserStatus.objects.filter(user_id=user_id).first()
+            if not status_obj:
+                return Response({"error": "User status has not been initialized yet."}, status=404)
+        else:
+            
+            status_obj, created = UserStatus.objects.get_or_create(user=request.user)
+        
+        serializer = UserStatusSerializer(status_obj)
+        return Response(serializer.data)
+
+ 
+    def patch(self, request):
+        
+        status_obj, created = UserStatus.objects.get_or_create(user=request.user)
+        
+       
+        serializer = UserStatusSerializer(status_obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
