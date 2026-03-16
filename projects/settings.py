@@ -34,6 +34,8 @@ CORS_ALLOW_METHODS = ['DELETE','GET','OPTIONS','PATCH','POST','PUT']
 # Application definition
 
 INSTALLED_APPS = [
+    
+    'daphne',
     'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    
 
     #add by sakhawat
     'rest_framework',
@@ -50,6 +54,10 @@ INSTALLED_APPS = [
 
     'apps.users',
     'apps.subscription',
+    #Add
+    'apps.chats',
+    'channels',
+    'apps.smartcase',
 
 
 ]
@@ -107,6 +115,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'projects.wsgi.application'
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
 
 
 # Database
@@ -191,3 +210,5 @@ STRIPE_PUBLISHABLE_KEY = "pk_test_51STbiQ7Q7Te59nushWPgro7CcExKcpmppJLN7mJgIqZjI
 
 # STRIPE_WEBHOOK_SECRET = "whsec_b56d6e1125481467e5d7fbd3c7ac244e5342e2e22c195b2660564963e31ad4aa"
 STRIPE_WEBHOOK_SECRET = "whsec_61Pq6Shro1nc8f2c88TxRgADuoCvHbBN"  # Stripe webhook secret for testting
+
+OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")

@@ -10,6 +10,8 @@ urlpatterns = [
     # add by sakhawat
     path('api/v1/', include('apps.users.urls')),
     path('api/v1/', include('apps.subscription.urls')),
+    path('api/v1/', include('apps.chats.urls')),
+    path('api/v1/', include('apps.smartcase.urls')),
 ]
 
 
