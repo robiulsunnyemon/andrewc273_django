@@ -6,13 +6,23 @@ from django.contrib.auth import get_user_model
 from apps.users.models import User
 
 
+# class UserStatus(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='status')
+#     is_online = models.BooleanField(default=False)
+#     last_seen = models.DateTimeField(auto_now=True)
+
+#     def __str__(self):
+#         return f"{self.user.email} - {'Online' if self.is_online else 'Offline'}"
+    
 class UserStatus(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='status')
-    is_online = models.BooleanField(default=False)
+    manual_status = models.BooleanField(default=True)
+    auto_status = models.BooleanField(default=False)
     last_seen = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.user.email} - {'Online' if self.is_online else 'Offline'}"
+    @property
+    def is_online(self):
+        return self.manual_status and self.auto_status
 
 class Room(models.Model):
  

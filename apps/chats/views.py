@@ -9,7 +9,7 @@ from .models import Room, Message, UserStatus
 from .serializers import RoomSerializer, MessageSerializer, RoomDetailSerializer, User,UserStatusSerializer
 from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
-
+from django.utils import timezone
 
 
 class RoomListCreateView(APIView):
@@ -67,33 +67,80 @@ class RoomDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+
+
+
 class UserStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
-   
-    
-
     def get(self, request, user_id=None):
+        """
+        Get the status of a user.
+        If user_id is provided, fetch that user's status.
+        Otherwise, return current user's status.
+        """
         if user_id:
-            
             status_obj = UserStatus.objects.filter(user_id=user_id).first()
             if not status_obj:
                 return Response({"error": "User status has not been initialized yet."}, status=404)
         else:
-            
             status_obj, created = UserStatus.objects.get_or_create(user=request.user)
-        
+
         serializer = UserStatusSerializer(status_obj)
         return Response(serializer.data)
 
- 
     def patch(self, request):
-        
+        """
+        Manual toggle for current user.
+        Only manual_status can be updated via this endpoint.
+        """
         status_obj, created = UserStatus.objects.get_or_create(user=request.user)
+
+        # Toggle manual_status if not provided
+        manual_status = request.data.get("manual_status", None)
+        if manual_status is None:
+            # invert current manual_status
+            status_obj.manual_status = not status_obj.manual_status
+        else:
+            # set to value sent in request
+            status_obj.manual_status = bool(manual_status)
+
+        # Optional: update last_seen to now if going online manually
+        if status_obj.manual_status:
+            status_obj.last_seen = timezone.now()
+
+        status_obj.save()
+
+        serializer = UserStatusSerializer(status_obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# class UserStatusView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+   
+    
+
+#     def get(self, request, user_id=None):
+#         if user_id:
+            
+#             status_obj = UserStatus.objects.filter(user_id=user_id).first()
+#             if not status_obj:
+#                 return Response({"error": "User status has not been initialized yet."}, status=404)
+#         else:
+            
+#             status_obj, created = UserStatus.objects.get_or_create(user=request.user)
+        
+#         serializer = UserStatusSerializer(status_obj)
+#         return Response(serializer.data)
+
+ 
+#     def patch(self, request):
+        
+#         status_obj, created = UserStatus.objects.get_or_create(user=request.user)
         
        
-        serializer = UserStatusSerializer(status_obj, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         serializer = UserStatusSerializer(status_obj, data=request.data, partial=True)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

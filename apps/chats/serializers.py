@@ -11,7 +11,7 @@ class UserStatusSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserStatus
-        fields = ['id', 'email', 'is_online', 'last_seen']
+        fields = ['id', 'email', 'manual_status','auto_status','last_seen']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
