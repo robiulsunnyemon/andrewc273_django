@@ -1,11 +1,24 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import SignupSerializer, LoginSerializer, PasswordResetRequestSerializer, PasswordResetChangeSerializer, ChangePasswordSerializer
+from .serializers import (
+    SignupSerializer,
+    LoginSerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetChangeSerializer,
+    ChangePasswordSerializer,
+    ProfileSerializer,
+    SocialLinkSerializer,
+    EmailVerificationSerializer,
+    ResendVerificationOTPSerializer
+)
+from .models import Profile, SocialLink
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework import generics
 
@@ -41,18 +54,55 @@ class SignupView(BaseAPIView):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            tokens = get_tokens_for_user(user)
+            user.is_active = False
+            user.generate_otp()
+            user.save()
+            send_mail(
+                subject="Verify your account",
+                message=f"Your verification code is {user.otp}. It expires in 10 minutes.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+            )
             profile = getattr(user, 'profile', None)
             return self.success_response(
-                "User created successfully.",
+                "User created successfully. Please verify your email.",
                 data={
                     "email": user.email,
-                    "first_name": getattr(profile, 'first_name', ''),
-                    "last_name": getattr(profile, 'last_name', ''),
-                    "tokens": tokens
                 }
             )
         return self.error_response("Validation error", data=serializer.errors)
+
+
+
+
+
+class VerifyEmailView(BaseAPIView):
+    """
+    POST /auth/verify-email/
+    Activates account after verifying the OTP sent during signup.
+    """
+    permission_classes = []
+
+    def post(self, request):
+        serializer = EmailVerificationSerializer(data=request.data)
+        if serializer.is_valid():
+            return self.success_response("Email verified successfully. You can now log in.")
+        return self.error_response("Verification failed.", data=serializer.errors)
+
+
+class ResendVerificationOTPView(BaseAPIView):
+    """
+    POST /auth/verify-email/resend-otp/
+    Re-sends the signup verification OTP for inactive accounts.
+    """
+    permission_classes = []
+
+    def post(self, request):
+        serializer = ResendVerificationOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return self.success_response("Verification code sent again to your email.")
+        return self.error_response("Could not resend verification code.", data=serializer.errors)
 
 
 
@@ -68,6 +118,9 @@ class LoginView(BaseAPIView):
         if serializer.is_valid():
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
+            user_obj = User.objects.filter(email=email).first()
+            if user_obj and not user_obj.is_active:
+                return self.error_response("Email not verified", status_code=status.HTTP_403_FORBIDDEN)
             user = authenticate(request, email=email, password=password)
             if user is None:
                 return self.error_response("Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
@@ -179,3 +232,39 @@ class DeleteAccountAPIView(APIView):
         # user.email = f"deleted_{user.id}_{user.email}" # For Soft delete
         # user.save() # For Soft delete
         return Response({"message": "Your account has been deleted."}, status=status.HTTP_200_OK)
+
+
+# ===== Profile Details =====
+class ProfileDetailAPIView(BaseAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        serializer = ProfileSerializer(profile)
+        return self.success_response("Profile fetched successfully.", data=serializer.data)
+
+    def put(self, request):
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return self.success_response("Profile updated successfully.", data=serializer.data)
+        return self.error_response("Validation error", data=serializer.errors)
+
+
+# ===== Social Links =====
+class SocialLinkAPIView(BaseAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        social_link, _ = SocialLink.objects.get_or_create(user=request.user)
+        serializer = SocialLinkSerializer(social_link)
+        return self.success_response("Social links fetched successfully.", data=serializer.data)
+
+    def put(self, request):
+        social_link, _ = SocialLink.objects.get_or_create(user=request.user)
+        serializer = SocialLinkSerializer(social_link, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return self.success_response("Social links updated successfully.", data=serializer.data)
+        return self.error_response("Validation error", data=serializer.errors)
