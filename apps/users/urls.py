@@ -1,13 +1,17 @@
 from django.urls import path
 from .views import (
     SignupView, LoginView,
-    PasswordResetRequestAPIView, PasswordResetOTPVerifyView, PasswordResetChangeAPIView, LogoutView, ChangePassword, DeleteAccountAPIView
+    PasswordResetRequestAPIView, PasswordResetOTPVerifyView, PasswordResetChangeAPIView, LogoutView, ChangePassword, DeleteAccountAPIView,
+    ProfileDetailAPIView, SocialLinkAPIView, VerifyEmailView, ResendVerificationOTPView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     # Signup
     path("signup/", SignupView.as_view(), name="signup"),
+
+    path("verify-email/", VerifyEmailView.as_view(), name="verify-email"),        # Verify OTP and activate
+    path("verify-email/resend-otp/", ResendVerificationOTPView.as_view(), name="verify-email-resend-otp"),         # Resend signup OTP
 
     # Login
     path("login/", LoginView.as_view(), name="login"),
@@ -28,4 +32,10 @@ urlpatterns = [
 
     # Delete Account
     path('delete-account/', DeleteAccountAPIView.as_view(), name='delete-account'),
+
+    # Profile Details
+    path("profile/", ProfileDetailAPIView.as_view(), name="profile-detail"),
+
+    # Social Links
+    path("social-links/", SocialLinkAPIView.as_view(), name="social-links"),
 ]
