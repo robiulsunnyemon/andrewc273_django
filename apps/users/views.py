@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -52,15 +54,20 @@ class SignupView(BaseAPIView):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            tokens = get_tokens_for_user(user)
+            user.is_active = False
+            user.generate_otp()
+            user.save()
+            send_mail(
+                subject="Verify your account",
+                message=f"Your verification code is {user.otp}. It expires in 10 minutes.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+            )
             profile = getattr(user, 'profile', None)
             return self.success_response(
-                "User created successfully.",
+                "User created successfully. Please verify your email.",
                 data={
                     "email": user.email,
-                    "first_name": getattr(profile, 'first_name', ''),
-                    "last_name": getattr(profile, 'last_name', ''),
-                    "tokens": tokens
                 }
             )
         return self.error_response("Validation error", data=serializer.errors)
@@ -111,6 +118,9 @@ class LoginView(BaseAPIView):
         if serializer.is_valid():
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
+            user_obj = User.objects.filter(email=email).first()
+            if user_obj and not user_obj.is_active:
+                return self.error_response("Email not verified", status_code=status.HTTP_403_FORBIDDEN)
             user = authenticate(request, email=email, password=password)
             if user is None:
                 return self.error_response("Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)

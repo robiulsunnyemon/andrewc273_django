@@ -41,6 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     otp_exp = models.DateTimeField(blank=True, null=True)
     otp_verified = models.BooleanField(default=False)
 
+
     USERNAME_FIELD = "email"
     objects = UserManager()
 
@@ -49,6 +50,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.otp_exp = timezone.now() + timedelta(minutes=10)
         self.otp_verified = False
         self.save()
+
 
     def __str__(self):
         return self.email
