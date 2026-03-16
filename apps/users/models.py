@@ -41,6 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     otp_exp = models.DateTimeField(blank=True, null=True)
     otp_verified = models.BooleanField(default=False)
 
+
     USERNAME_FIELD = "email"
     objects = UserManager()
 
@@ -50,6 +51,32 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.otp_verified = False
         self.save()
 
+
     def __str__(self):
         return self.email
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    name = models.CharField(max_length=255, blank=True)
+    organization = models.CharField(max_length=255, blank=True)
+    location = models.CharField(max_length=255, blank=True)
+    phone_number = models.CharField(max_length=50, blank=True)
+
+    def __str__(self):
+        return f"Profile({self.user.email})"
+
+
+class SocialLink(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="social_link")
+    facebook = models.URLField(blank=True)
+    x = models.URLField(blank=True)
+    instagram = models.URLField(blank=True)
+    youtube = models.URLField(blank=True)
+    truth = models.URLField(blank=True)
+
+    def __str__(self):
+        return f"SocialLink({self.user.email})"
 
