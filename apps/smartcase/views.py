@@ -1,5 +1,5 @@
 import base64
-#import openai
+import openai
 from django.conf import settings
 
 from rest_framework.views import APIView
@@ -9,7 +9,7 @@ from rest_framework import status
 from .models import CaseSubmission, CaseDocument
 from .serializers import CaseSubmissionSerializer, CaseDocumentSerializer
 
-#client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
+client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
 
 def enhance_case_text(user_text):
     """
@@ -61,7 +61,7 @@ def enhance_case_text(user_text):
 
 def analyze_case_link(link_url):
     """
-    OpenAI GPT-4o ব্যবহার করে লিঙ্ক থেকে তথ্য সংগ্রহ ও সামারি করা (Retry Logic সহ)
+    OpenAI GPT-4o  (Retry Logic Similar to your dental app) for analyzing legal case links
     """
     max_retries = 3
     LINK_PROMPT = "Analyze this URL and provide a concise legal summary of the document or webpage content. Format your response as a JSON object with 'summary' and 'status' keys."
