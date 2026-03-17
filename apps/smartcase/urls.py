@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import CaseSubmissionListCreateAPIView, CaseDetailAPIView, AIEnhanceTextView, AIAnalyzeLinkView
-
+from .views import (
+CaseSubmissionListCreateAPIView, CaseDetailAPIView, AIEnhanceTextView, AIAnalyzeLinkView
+)
 urlpatterns = [
     path('cases/', CaseSubmissionListCreateAPIView.as_view(), name='case-list-create'),
     path('cases/<int:pk>/', CaseDetailAPIView.as_view(), name='case-detail'),
