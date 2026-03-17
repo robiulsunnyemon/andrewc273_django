@@ -45,12 +45,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     objects = UserManager()
 
-    def generate_otp(self):
-        self.otp = str(random.randint(1000, 9999))  # Generate 4-digit OTP
+    def generate_otp(self, test_otp=None):
+        if test_otp:
+            self.otp = str(test_otp)
+        else:
+            self.otp = str(random.randint(1000, 9999))
         self.otp_exp = timezone.now() + timedelta(minutes=10)
         self.otp_verified = False
         self.save()
-
+        # self.otp = str(random.randint(1000, 9999))  # Generate 4-digit OTP
+        # self.otp_exp = timezone.now() + timedelta(minutes=10)
+        # self.otp_verified = False
+        # self.save()
+     
 
     def __str__(self):
         return self.email
