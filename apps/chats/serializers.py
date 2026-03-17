@@ -9,14 +9,17 @@ User = get_user_model()
 class UserStatusSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='user.email', read_only=True)
 
+
     class Meta:
         model = UserStatus
         fields = ['id', 'email', 'manual_status','auto_status','last_seen']
 
 class UserSerializer(serializers.ModelSerializer):
+    name=serializers.CharField(source='profile.name', read_only=True)
+    
     class Meta:
         model = User
-        fields = ['id', 'email']
+        fields = ['id', 'name', 'email']
 
 class MessageSerializer(serializers.ModelSerializer):
     # sender_name = serializers.ReadOnlyField(source='sender.username')

@@ -62,7 +62,7 @@ class SignupView(BaseAPIView):
            
            # ONLY TEST OTP
             user.generate_otp(test_otp="1234")
-            print("OTP before send_mail:", user.otp)
+            
 
             # user.save()
             send_mail(
