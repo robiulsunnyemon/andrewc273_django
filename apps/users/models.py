@@ -68,6 +68,7 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     name = models.CharField(max_length=255, blank=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     organization = models.CharField(max_length=255, blank=True)
     location = models.CharField(max_length=255, blank=True)
     phone_number = models.CharField(max_length=50, blank=True)

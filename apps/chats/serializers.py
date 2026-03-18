@@ -16,10 +16,11 @@ class UserStatusSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     name=serializers.CharField(source='profile.name', read_only=True)
-    
+    avatar=serializers.ImageField(source='profile.avatar', read_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'name', 'email']
+        fields = ['id', 'name', 'avatar', 'email']
 
 class MessageSerializer(serializers.ModelSerializer):
     # sender_name = serializers.ReadOnlyField(source='sender.username')
