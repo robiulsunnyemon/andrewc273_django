@@ -1,5 +1,5 @@
 import base64
-#import openai
+import openai
 from django.conf import settings
 
 from rest_framework.views import APIView
@@ -9,7 +9,7 @@ from rest_framework import status
 from .models import CaseSubmission, CaseDocument
 from .serializers import CaseSubmissionSerializer, CaseDocumentSerializer
 
-#client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
+client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
 
 def enhance_case_text(user_text):
     """
@@ -19,19 +19,23 @@ def enhance_case_text(user_text):
     
     
     PROMPT = """
-    Analyze the provided legal case text and enhance it.
-    CRITICAL GUIDELINES:
-    1. PROFESSIONALISM: Use formal legal language.
-    2. STRUCTURE: Organize into clear paragraphs (Background, Facts, Request).
-    3. DISCLAIMER: Subtly mention that this is an AI-enhanced draft and requires legal review.
-    4. FORMAT: Respond ONLY in JSON format.
-    
-    Example JSON structure:
-    {
-        "status": "success",
-        "enhanced_text": "Your professional text here...",
-        "summary": "Short summary of changes"
-    }
+    Act as a professional editor. Your goal is to fix the grammar, spelling, and flow of the provided text to make it sound professional yet concise.
+
+RAW USER TEXT: "{user_text}"
+
+INSTRUCTIONS:
+1. Fix all grammatical and spelling errors (e.g., change "theis" to "this").
+2. Make the sentence structure smooth and professional.
+3. Keep the original meaning but make it sound more polished.
+4. Do NOT add unnecessary legal sections unless the input text is actually a legal case.
+5. Respond ONLY in JSON format.
+
+JSON STRUCTURE:
+{{
+    "status": "success",
+    "enhanced_text": "Your polished and corrected version here...",
+    "summary": "List of corrections made."
+}}
     """
 
     for attempt in range(max_retries):
@@ -61,7 +65,7 @@ def enhance_case_text(user_text):
 
 def analyze_case_link(link_url):
     """
-    OpenAI GPT-4o ব্যবহার করে লিঙ্ক থেকে তথ্য সংগ্রহ ও সামারি করা (Retry Logic সহ)
+    OpenAI GPT-4o  (Retry Logic Similar to your dental app) for analyzing legal case links
     """
     max_retries = 3
     LINK_PROMPT = "Analyze this URL and provide a concise legal summary of the document or webpage content. Format your response as a JSON object with 'summary' and 'status' keys."
@@ -86,23 +90,20 @@ def analyze_case_link(link_url):
             continue
 
 class AIEnhanceTextView(APIView):
-    def get (self, request):
-        return Response({"message": "Send a POST request with 'text' to enhance."},status=status.HTTP_200_OK)
+    def get(self, request):
+        test_text = "theis name is al"
+        ai_response = enhance_case_text(test_text)
+        return Response(ai_response, status=status.HTTP_200_OK)
     
     def post(self, request):
         user_text = request.data.get('text', '')
-        
         if not user_text:
-            return Response({"error": "No text provided"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "No text provided"}, status=400)
 
-       
         ai_response = enhance_case_text(user_text)
-
-        if ai_response.get('status') == 'failed':
-            return Response(ai_response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        
         return Response(ai_response, status=status.HTTP_200_OK)
-    
+   
 class AIAnalyzeLinkView(APIView):
     def get (self, request):
         return Response({"message": "Send a POST request with 'link' to analyze."},status=status.HTTP_200_OK)   
@@ -113,9 +114,7 @@ class AIAnalyzeLinkView(APIView):
         if not link:
             return Response({"error": "No link provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        
         ai_response = analyze_case_link(link)
-
         
         return Response(ai_response, status=status.HTTP_200_OK)
         
@@ -133,21 +132,20 @@ class CaseSubmissionListCreateAPIView(APIView):
 
    
     def post(self, request):
-        
         serializer = CaseSubmissionSerializer(data=request.data)
-        
         if serializer.is_valid():
-          
             case_instance = serializer.save()
-            
-          
+
+           
             files = request.FILES.getlist('files') 
             for f in files:
                 CaseDocument.objects.create(case=case_instance, file=f)
             
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            case_instance.press_release_enhanced = request.data.get('press_release', '')
+            case_instance.save()
+            #link condition add after client metting
+            return Response(CaseSubmissionSerializer(case_instance).data, status=201)
+        return Response(serializer.errors, status=400)
 
 
 class CaseDetailAPIView(APIView):

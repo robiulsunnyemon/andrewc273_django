@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
 from django.core.mail import send_mail
@@ -55,8 +57,14 @@ class SignupView(BaseAPIView):
         if serializer.is_valid():
             user = serializer.save()
             user.is_active = False
-            user.generate_otp()
-            user.save()
+            # user.generate_otp()
+            # user.save()
+           
+           # ONLY TEST OTP
+            user.generate_otp(test_otp="1234")
+            
+
+            # user.save()
             send_mail(
                 subject="Verify your account",
                 message=f"Your verification code is {user.otp}. It expires in 10 minutes.",

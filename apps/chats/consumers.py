@@ -56,12 +56,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
+        
+
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event))
 
-    # ===============================
+  
     # DATABASE FUNCTIONS
-    # ===============================
+   
 
     @database_sync_to_async
     def set_auto_online(self):
