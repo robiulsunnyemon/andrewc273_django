@@ -5,4 +5,8 @@ from unfold.admin import ModelAdmin
 
 @admin.register(User)
 class CustomAdminClass(ModelAdmin):
-    pass
+        list_display = ('id','email', 'is_staff', 'is_active', 'date_joined')
+        search_fields = ('email',)
+        list_filter = ('is_staff', 'is_active')
+    # pass
+

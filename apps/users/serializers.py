@@ -1,3 +1,5 @@
+
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -5,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 from .models import Profile, SocialLink
 User = get_user_model()
 
-from django.utils.timezone import now
+from django.utils.timezone import now, timedelta
 from django.conf import settings
 
 
@@ -34,6 +36,8 @@ class SignupSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             password=validated_data['password'],
         )
+
+       
         Profile.objects.create(
             user=user,
             first_name=first_name,
@@ -90,7 +94,7 @@ class ResendVerificationOTPSerializer(serializers.Serializer):
 
     def save(self, **kwargs):
         user = User.objects.get(email=self.validated_data["email"])
-        user.generate_otp()
+        user.generate_otp(test_otp="1234")
         send_mail(
             subject="Verify your account (resend)",
             message=f"Your verification code is {user.otp}. It expires in 10 minutes.",
@@ -119,7 +123,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError("User with this email does not exist.")
 
-        user.generate_otp()
+        user.generate_otp(test_otp="1234")
         send_mail(
             "Password Reset OTP",
             f"Your OTP for password reset is {user.otp}",
@@ -160,7 +164,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["email", "name", "organization", "location", "phone_number"]
+        fields = ["email", "name", "organization", "location", "phone_number", "avatar"]
 
 
 class SocialLinkSerializer(serializers.ModelSerializer):

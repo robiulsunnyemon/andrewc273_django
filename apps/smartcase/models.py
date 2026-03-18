@@ -6,7 +6,7 @@ class CaseSubmission(models.Model):
     case_title = models.CharField(max_length=255)
     case_number = models.CharField(max_length=100, unique=True)
     author = models.CharField(max_length=255, blank=True, null=True)
-    press_release = models.TextField()
+    press_release = models.TextField(blank=True, null=True,)
     press_release_enhanced = models.TextField(blank=True, null=True, help_text="Polished version by AI")
     state = models.CharField(max_length=100)
     federal_district = models.CharField(max_length=255, blank=True, null=True)
