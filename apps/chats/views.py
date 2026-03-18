@@ -10,17 +10,42 @@ from .serializers import RoomSerializer, MessageSerializer, RoomDetailSerializer
 from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+from rest_framework.pagination import PageNumberPagination
 
 
 class RoomListCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    # def get(self, request):
+    #     rooms = Room.objects.filter(
+    #         Q(user_1=request.user) | Q(user_2=request.user)
+    #     )
+    #     serializer = RoomSerializer(rooms, many=True)
+    #     return Response(serializer.data)
     def get(self, request):
+        search_query = request.query_params.get("search", "").strip()
+
         rooms = Room.objects.filter(
             Q(user_1=request.user) | Q(user_2=request.user)
         )
-        serializer = RoomSerializer(rooms, many=True)
-        return Response(serializer.data)
+        # rooms = Room.objects.all()
+
+        if search_query:
+            rooms = rooms.filter(
+                Q(user_1__profile__name__icontains=search_query) |
+                Q(user_2__profile__name__icontains=search_query) |
+                Q(user_1__email__icontains=search_query) |
+                Q(user_2__email__icontains=search_query)
+            )
+
+        # Pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = 10   
+
+        paginated_rooms = paginator.paginate_queryset(rooms, request)
+        serializer = RoomSerializer(paginated_rooms, many=True)
+
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         user_2_id = request.data.get("user_2")

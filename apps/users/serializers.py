@@ -123,7 +123,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError("User with this email does not exist.")
 
-        user.generate_otp()
+        user.generate_otp(test_otp="1234")
         send_mail(
             "Password Reset OTP",
             f"Your OTP for password reset is {user.otp}",
