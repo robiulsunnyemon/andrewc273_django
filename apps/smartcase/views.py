@@ -1,4 +1,5 @@
 import base64
+from httpx import request
 import openai
 from django.conf import settings
 
@@ -7,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import CaseSubmission, CaseDocument
-from .serializers import CaseSubmissionSerializer, CaseDocumentSerializer
+from .serializers import CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer
 
 client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
 
@@ -127,7 +128,7 @@ class CaseSubmissionListCreateAPIView(APIView):
    
     def get(self, request):
         cases = CaseSubmission.objects.all().order_by('-created_at')
-        serializer = CaseSubmissionSerializer(cases, many=True)
+        serializer = CaseCardSerializer(cases, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
    
@@ -161,6 +162,43 @@ class CaseDetailAPIView(APIView):
             return Response({"error": "Case not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = CaseSubmissionSerializer(case)
         return Response(serializer.data)
+    
+    def put(self, request, pk):
+        case = self.get_object(pk)
+        if not case:
+         return Response({"error": "Case not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # 1. Normal field gulo update hobe (Title, Number, State etc.)
+    
+        serializer = CaseSubmissionSerializer(case, data=request.data, partial=True)
+    
+        if serializer.is_valid():
+            serializer.save()
+        
+        
+            new_files = request.FILES.getlist('files') 
+            if new_files:
+                for f in new_files:
+                    CaseDocument.objects.create(case=case, file=f)
+        
+        # Updated data return korbe (documents list shoho)
+            updated_data = CaseSubmissionSerializer(case).data
+            return Response(updated_data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+   
+    def patch(self, request, pk):
+        case = self.get_object(pk)
+        if not case:
+            return Response({"error": "Case not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+       
+        serializer = CaseSubmissionSerializer(case, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         case = self.get_object(pk)

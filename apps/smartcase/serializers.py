@@ -15,3 +15,15 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
     
         read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at']
 
+class CaseCardSerializer(serializers.ModelSerializer):
+    # summary snippet toiri korar jonno
+    content_snippet = serializers.SerializerMethodField()
+    name=serializers.CharField(source='profile.name', read_only=True)
+    avatar=serializers.ImageField(source='profile.avatar', read_only=True)
+
+    class Meta:
+        model = CaseSubmission
+        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet']
+
+    def get_content_snippet(self, obj):
+        return obj.press_release[:150] + "..." if obj.press_release else ""
