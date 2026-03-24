@@ -6,6 +6,9 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+
+from apps.smartcase.permissions import IsOwnerOrReadOnly
 
 from .models import CaseSubmission, CaseDocument
 from .serializers import CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer
@@ -125,17 +128,18 @@ class AIAnalyzeLinkView(APIView):
 
 
 class CaseSubmissionListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
    
     def get(self, request):
         cases = CaseSubmission.objects.all().order_by('-created_at')
-        serializer = CaseCardSerializer(cases, many=True)
+        serializer = CaseCardSerializer(cases, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
    
     def post(self, request):
         serializer = CaseSubmissionSerializer(data=request.data)
         if serializer.is_valid():
-            case_instance = serializer.save()
+            case_instance = serializer.save(user=request.user)
 
            
             files = request.FILES.getlist('files') 
@@ -145,14 +149,19 @@ class CaseSubmissionListCreateAPIView(APIView):
             case_instance.press_release_enhanced = request.data.get('press_release', '')
             case_instance.save()
             #link condition add after client metting
-            return Response(CaseSubmissionSerializer(case_instance).data, status=201)
+            # return Response(CaseSubmissionSerializer(case_instance).data, status=201)
+            return Response(CaseSubmissionSerializer(case_instance, context={'request': request}).data, status=201)
         return Response(serializer.errors, status=400)
 
 
 class CaseDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
     def get_object(self, pk):
         try:
-            return CaseSubmission.objects.get(pk=pk)
+            case = CaseSubmission.objects.get(pk=pk)
+            self.check_object_permissions(self.request, case) 
+            return case
         except CaseSubmission.DoesNotExist:
             return None
 

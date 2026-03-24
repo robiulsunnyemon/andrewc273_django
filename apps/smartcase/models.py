@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 
 class CaseSubmission(models.Model):
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='cases', null=True, blank=True)
     case_title = models.CharField(max_length=255)
     case_number = models.CharField(max_length=100, unique=True)
     author = models.CharField(max_length=255, blank=True, null=True)
