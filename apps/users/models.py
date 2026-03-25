@@ -73,6 +73,10 @@ class Profile(models.Model):
     location = models.CharField(max_length=255, blank=True)
     phone_number = models.CharField(max_length=50, blank=True)
 
+    total_letters = models.PositiveIntegerField(default=0)
+    total_posts = models.PositiveIntegerField(default=0)
+    has_podcast_story = models.BooleanField(default=False, help_text="Featured in Podcast/Story for Star badge")
+
     def __str__(self):
         return f"Profile({self.user.email})"
 
@@ -87,4 +91,10 @@ class SocialLink(models.Model):
 
     def __str__(self):
         return f"SocialLink({self.user.email})"
+    
+    @property
+    def connected_count(self):
+        """Koti social link field-e data ache seta count korbe"""
+        links = [self.facebook, self.x, self.instagram, self.youtube, self.truth]
+        return sum(1 for link in links if link)
 

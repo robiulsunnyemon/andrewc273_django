@@ -12,7 +12,7 @@ class CaseDocumentSerializer(serializers.ModelSerializer):
     def get_download_url(self, obj):
         request = self.context.get('request')
         if request:
-            # Full path: http://127.0.0.1:8000/api/documents/download/10/
+            # Full path: 
             return request.build_absolute_uri(f"/api/documents/download/{obj.id}/")
         return f"/api/documents/download/{obj.id}/"
 
@@ -33,6 +33,7 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
         read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at']
 
 class CaseCardSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
     # summary snippet toiri korar jonno
     content_snippet = serializers.SerializerMethodField()
     #name = serializers.CharField(source='profile.name', read_only=True)
@@ -41,7 +42,7 @@ class CaseCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet']
+        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet', 'status']
 
     def get_name(self, obj):
         # User -> Profile -> Name sequence check
@@ -64,3 +65,25 @@ class CaseCardSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.user.profile.avatar.url)
             return obj.user.profile.avatar.url
         return None
+    
+    def get_status(self, obj):
+        user = obj.user
+        if not user or not hasattr(user, 'profile'):
+            return None
+        p = user.profile
+        s = getattr(user, 'social_link', None)
+        top_badge = "Legion"
+        if p.total_letters >= 500000 or p.total_posts >= 150:
+            top_badge = "Omega"
+        elif p.total_letters >= 250000 or p.total_posts >= 75:
+            top_badge = "Phi"
+
+        is_verified = s.connected_count >= 2 if s else False
+        is_large_contributor = p.total_posts > 200
+        has_star = p.has_podcast_story
+        return {
+            "top_badge": top_badge,
+            "is_verified": is_verified,
+            "is_large_contributor": is_large_contributor,
+            "has_star": has_star
+        }
