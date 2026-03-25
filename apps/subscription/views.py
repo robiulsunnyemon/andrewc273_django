@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils.timezone import make_aware
 from .models import Subscription
-from .utils.stripe_utils import create_checkout_session
+from .utils.stripe_utils import create_checkout_session, PRICE_LOOKUP
 import stripe, datetime
 from django.conf import settings
 from rest_framework import status
@@ -30,15 +30,18 @@ User = get_user_model()
 #     ("package-2", "monthly"): "price_1RrkKF5izR1x5g2eDphYedWD",
 #     ("package-2", "yearly"): "price_1RrkLo5izR1x5g2eGfs6QAjB",
 # }
-# client test payment packages
+def _get_package_and_billing_from_price_id(price_id):
+    for (pkg, billing), pid in PRICE_LOOKUP.items():
+        if pid == price_id:
+            return pkg, billing
+    return None, None
 
-
-PRICE_LOOKUP = {
-    ("package-1", "monthly"): "price_1SaZax7Q7Te59nusdChNPWkR",
-    ("package-1", "yearly"): "price_1SabM07Q7Te59nus79GBw4cn",
-
-}
-
+def _normalize_interval(interval):
+    if interval == "month":
+        return "monthly"
+    if interval == "year":
+        return "yearly"
+    return interval
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
@@ -81,6 +84,11 @@ class CreateCheckoutView(BaseAPIView):  # Inherit from BaseAPIView
                 message="Checkout session created successfully",
                 data={"checkout_url": session_url},
                 status_code=status.HTTP_200_OK
+            )
+        except ValueError as e:
+            return self.error_response(
+                message=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
             return self.error_response(
@@ -131,7 +139,7 @@ class UpgradeSubscriptionView(BaseAPIView):
         except Subscription.DoesNotExist:
             return self.error_response("No active subscription found.", status_code=404)
 
-        if sub.billing_interval != "month":
+        if sub.billing_interval not in ("monthly", "month"):
             return self.error_response("Only monthly subscriptions can be upgraded.", status_code=400)
 
         current_package = sub.package
@@ -315,111 +323,88 @@ class StripePaymentSuccessView(BaseAPIView):
 
 
 
-# # Stripe Webhook to handle events like subscription creation,cancellation,and invoice creation
-# @csrf_exempt
-# def stripe_webhook(request):
-#     print("Stripe Webhook triggered")
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
 
-#     payload = request.body
-#     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    if sig_header is None:
+        return JsonResponse({'error': 'missing signature header'}, status=400)
 
-#     if sig_header is None:
-#         return JsonResponse({'error': 'missing signature header'}, status=400)
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except stripe.SignatureVerificationError:
+        return JsonResponse({'error': 'invalid signature'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
-#     try:
-#         event = stripe.Webhook.construct_event(
-#             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-#         )
-#         print(f" Stripe event received: {event['type']}")
-#     except stripe.SignatureVerificationError:
-#         return JsonResponse({'error': 'invalid signature'}, status=400)
-#     except Exception as e:
-#         print(f" Exception during event parsing: {e}")
-#         return JsonResponse({'error': str(e)}, status=400)
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
 
-#     if event['type'] == 'checkout.session.completed':
-#         session = event['data']['object']
+        customer_id = session.get("customer")
+        subscription_id = session.get("subscription")
+        email = session.get("customer_email") or session.get("customer_details", {}).get("email")
 
-#         customer_id = session.get("customer")
-#         subscription_id = session.get("subscription")
-#         email = session.get("customer_email") or session.get("customer_details", {}).get("email")
+        if not email:
+            return JsonResponse({"error": "No customer email found in session"}, status=400)
 
-#         if not email:
-#             return JsonResponse({"error": "No customer email found in session"}, status=400)
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return JsonResponse({"error": f"No user found with email {email}"}, status=404)
 
-#         user = User.objects.filter(email=email).first()
-#         if not user:
-#             return JsonResponse({"error": f"No user found with email {email}"}, status=404)
+        try:
+            stripe_sub = stripe.Subscription.retrieve(subscription_id)
 
-#         print(f" Matched user: {user.email}")
+            item_data = stripe_sub.get("items", {}).get("data", [])
+            package = "unknown"
+            billing_interval = "unknown"
+            period_start_ts = None
+            period_end_ts = None
 
-#         try:
-#             stripe_sub = stripe.Subscription.retrieve(subscription_id)
-#             print(" Stripe Subscription:", stripe_sub)
+            if item_data:
+                item = item_data[0]  # First subscription item
+                period_start_ts = item.get("current_period_start")
+                period_end_ts = item.get("current_period_end")
+                price = item.get("price", {})
+                price_id = price.get("id")
+                recurring = price.get("recurring", {})
+                interval = recurring.get("interval")
+                billing_interval = _normalize_interval(interval)
 
-#             item_data = stripe_sub.get("items", {}).get("data", [])
-#             if item_data:
-#                 item = item_data[0]  # First subscription item
-#                 period_start_ts = item.get("current_period_start")  # Access from item, not stripe_sub
-#                 period_end_ts = item.get("current_period_end")
-#                 price_id = item["price"]["id"]
-#                 price = item.get("price", {})
-#                 price_id = price.get("id")
-#                 recurring = price.get("recurring", {})
-#                 interval = recurring.get("interval")
-#                 print("Interval:", interval)
-#                 package = get_package_from_price_id(price_id)
-#             else:
-#                 item = {}
-#                 package = "unknown"
-#                 interval = None
-#                 period_start_ts = period_end_ts = None
+                pkg_from_price, billing_from_price = _get_package_and_billing_from_price_id(price_id)
+                if pkg_from_price:
+                    package = pkg_from_price
+                if billing_from_price:
+                    billing_interval = billing_from_price
 
-#             Subscription.objects.update_or_create(
-#                 user=user,
-#                 defaults={
-#                     "stripe_customer_id": customer_id,
-#                     "stripe_subscription_id": subscription_id,
-#                     "package": package,
-#                     "billing_interval": interval,
-#                     "current_period_start": make_aware(datetime.fromtimestamp(period_start_ts)) if period_start_ts else None,
-#                     "current_period_end": make_aware(datetime.fromtimestamp(period_end_ts)) if period_end_ts else None,
-#                     "auto_renew": not stripe_sub.get("cancel_at_period_end", False),
-#                     "is_active": True
-#                 }
-#             )
-#             print(" Subscription updated/created")
+            Subscription.objects.update_or_create(
+                user=user,
+                defaults={
+                    "stripe_customer_id": customer_id,
+                    "stripe_subscription_id": subscription_id,
+                    "package": package,
+                    "billing_interval": billing_interval,
+                    "current_period_start": make_aware(datetime.fromtimestamp(period_start_ts)) if period_start_ts else None,
+                    "current_period_end": make_aware(datetime.fromtimestamp(period_end_ts)) if period_end_ts else None,
+                    "auto_renew": not stripe_sub.get("cancel_at_period_end", False),
+                    "is_active": True
+                }
+            )
 
-#         except Exception as e:
-#             return JsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
-#     elif event["type"] == "customer.subscription.deleted":
-#         print(" Handling customer.subscription.deleted")
-#         stripe_sub = event["data"]["object"]
-#         sub = Subscription.objects.filter(stripe_subscription_id=stripe_sub["id"]).first()
-#         if sub:
-#             sub.is_active = False
-#             sub.save()
-#             print(f" Subscription {sub.id} marked inactive")
+    elif event["type"] == "customer.subscription.deleted":
+        stripe_sub = event["data"]["object"]
+        sub = Subscription.objects.filter(stripe_subscription_id=stripe_sub["id"]).first()
+        if sub:
+            sub.is_active = False
+            sub.auto_renew = False
+            sub.save()
 
-#     elif event["type"] == "invoice.created":
-#         invoice = event["data"]["object"]
-#         print(f"Invoice created: {invoice['id']}")
-#         return JsonResponse({'status': 'invoice.created received'}, status=200)
-
-#     return JsonResponse({"status": "ok"})
-
-
-
-# # Debugging for package ID resolution
-# def get_package_from_price_id(price_id):
-#     print(f" Looking up package for price_id: {price_id}")
-#     for (pkg, billing), pid in PRICE_LOOKUP.items():
-#         if pid == price_id:
-#             print(f"Matched package: {pkg} with billing {billing}")
-#             return pkg
-#     print(" No package match found")
-#     return "unknown"
+    return JsonResponse({"status": "ok"})
 
 
 
