@@ -164,7 +164,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["email", "name", "organization", "location", "phone_number", "avatar"]
+        fields = ["email", "name", "organization", "location", "phone_number", "avatar",'total_letters', 'total_posts', 'has_podcast_story']
 
 
 class SocialLinkSerializer(serializers.ModelSerializer):

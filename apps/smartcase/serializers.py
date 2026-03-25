@@ -77,6 +77,8 @@ class CaseCardSerializer(serializers.ModelSerializer):
             top_badge = "Omega"
         elif p.total_letters >= 250000 or p.total_posts >= 75:
             top_badge = "Phi"
+        elif p.total_letters >= 50 or p.total_posts >= 2:
+            top_badge = "Sigma"
 
         is_verified = s.connected_count >= 2 if s else False
         is_large_contributor = p.total_posts > 200
