@@ -1,4 +1,7 @@
 import base64
+import os
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from httpx import request
 import openai
 from django.conf import settings
@@ -125,7 +128,20 @@ class AIAnalyzeLinkView(APIView):
 
 
 
+class DownloadDocumentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, document_id):
+        document = get_object_or_404(CaseDocument, id=document_id)
+        # File path theke open kora
+        file_handle = document.file.open()
+        response = FileResponse(file_handle, as_attachment=True)
+        
+        # Download file name set kora (Title + original extension)
+        ext = os.path.splitext(document.file.name)[1]
+        download_name = f"{document.title or 'document'}{ext}"
+        response['Content-Disposition'] = f'attachment; filename="{download_name}"'
+        return response
 
 class CaseSubmissionListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]

@@ -2,10 +2,27 @@ from rest_framework import serializers
 from .models import CaseSubmission, CaseDocument
 
 class CaseDocumentSerializer(serializers.ModelSerializer):
+    download_url = serializers.SerializerMethodField()
+    file_size = serializers.SerializerMethodField()
     class Meta:
         model = CaseDocument
-        fields = ['id', 'case', 'file', 'uploaded_at']
+        fields = ['id', 'case','title', 'file','download_url', 'file_size', 'uploaded_at']
         read_only_fields = ['uploaded_at']
+
+    def get_download_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            # Full path: http://127.0.0.1:8000/api/documents/download/10/
+            return request.build_absolute_uri(f"/api/documents/download/{obj.id}/")
+        return f"/api/documents/download/{obj.id}/"
+
+    def get_file_size(self, obj):
+        try:
+            size = obj.file.size
+            if size < 1024: return f"{size} B"
+            elif size < 1048576: return f"{round(size / 1024, 1)} KB"
+            else: return f"{round(size / 1048576, 1)} MB"
+        except: return "Unknown"
 
 class CaseSubmissionSerializer(serializers.ModelSerializer):
     documents = CaseDocumentSerializer(many=True, read_only=True)

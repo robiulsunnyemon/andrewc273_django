@@ -26,4 +26,5 @@ class CaseSubmission(models.Model):
 class CaseDocument(models.Model):
     case = models.ForeignKey(CaseSubmission, related_name='documents', on_delete=models.CASCADE)
     file = models.FileField(upload_to='cases/documents/')
+    title = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
