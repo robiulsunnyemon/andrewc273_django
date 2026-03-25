@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/v1/', include('apps.subscription.urls')),
     path('api/v1/', include('apps.chats.urls')),
     path('api/v1/', include('apps.smartcase.urls')),
+    path('api/v1/', include('apps.prisons.urls')),
 ]
 
 

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'apps.chats',
     'channels',
     'apps.smartcase',
+    'apps.prisons',
 
 
 ]
