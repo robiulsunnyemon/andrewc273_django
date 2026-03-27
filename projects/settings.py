@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'channels',
     'apps.smartcase',
     'apps.prisons',
+    'apps.contact_support'
 
 
 ]
