@@ -4,9 +4,10 @@ from .models import CaseSubmission, CaseDocument
 class CaseDocumentSerializer(serializers.ModelSerializer):
     download_url = serializers.SerializerMethodField()
     file_size = serializers.SerializerMethodField()
+    # is_video = serializers.SerializerMethodField()
     class Meta:
         model = CaseDocument
-        fields = ['id', 'case','title', 'file','download_url', 'file_size', 'uploaded_at']
+        fields = ['id', 'case','title', 'file','download_url', 'file_size',  'uploaded_at']
         read_only_fields = ['uploaded_at']
 
     def get_download_url(self, obj):
@@ -23,6 +24,11 @@ class CaseDocumentSerializer(serializers.ModelSerializer):
             elif size < 1048576: return f"{round(size / 1024, 1)} KB"
             else: return f"{round(size / 1048576, 1)} MB"
         except: return "Unknown"
+
+    # def get_is_video(self, obj):
+    #     try:
+    #         return obj.file.name.endswith(('.mp4', '.avi', '.mov'))
+    #     except: return False
 
 class CaseSubmissionSerializer(serializers.ModelSerializer):
     documents = CaseDocumentSerializer(many=True, read_only=True)
