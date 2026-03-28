@@ -10,7 +10,6 @@ class LegalDocument(models.Model):
 
     title = models.CharField(max_length=255) 
     
-    
     slug = models.CharField(max_length=50, choices=DOCUMENT_TYPES, unique=True)
     
     content = RichTextField(config_name='default')

@@ -6,6 +6,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
 
     # add by sakhawat
     path('api/v1/', include('apps.users.urls')),
@@ -14,6 +15,7 @@ urlpatterns = [
     path('api/v1/', include('apps.smartcase.urls')),
     path('api/v1/', include('apps.contact_support.urls')),
     path('api/v1/', include('apps.cms.urls')),
+    path('api/v1/', include('apps.resources.urls')),
     # path('api/v1/', include('apps.prisons.urls')),
 ]
 

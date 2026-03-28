@@ -66,7 +66,8 @@ INSTALLED_APPS = [
     'apps.cms',
     #
     'ckeditor',
-    # 'ckeditor_uploader',
+     'ckeditor_uploader',
+    "apps.resources",
 
 
 ]
@@ -204,7 +205,7 @@ STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-# CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_UPLOAD_PATH = "uploads/"
 
 
 # Default primary key field type
