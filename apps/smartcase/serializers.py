@@ -34,7 +34,7 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
     documents = CaseDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district', 'court_type', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
+        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status', 'court_type', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
     
         read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at']
 
@@ -48,7 +48,7 @@ class CaseCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet', 'status']
+        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet', 'status', 'case_status']
 
     def get_name(self, obj):
         # User -> Profile -> Name sequence check
@@ -112,7 +112,7 @@ class CaseCardMediaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'status', 'documents']
+        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'status', 'documents', 'case_status']
 
 
     def get_name(self, obj):
