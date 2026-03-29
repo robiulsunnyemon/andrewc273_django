@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.smartcase.permissions import IsOwnerOrReadOnly
 
 from .models import CaseSubmission, CaseDocument
-from .serializers import CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer
+from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer
 
 client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
 
@@ -231,3 +231,13 @@ class CaseDetailAPIView(APIView):
             case.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({"error": "Case not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+#casse media submission list view (for admin dashboard)
+    
+class CaseMediaSubmissionListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+   
+    def get(self, request):
+        cases = CaseSubmission.objects.all().order_by('-created_at')
+        serializer = CaseCardMediaSerializer(cases, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -95,3 +95,68 @@ class CaseCardSerializer(serializers.ModelSerializer):
             "is_large_contributor": is_large_contributor,
             "has_star": has_star
         }
+    
+#media serializer for card view
+
+class CaseCardMediaSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    # summary snippet toiri korar jonno
+    # content_snippet = serializers.SerializerMethodField()
+    #name = serializers.CharField(source='profile.name', read_only=True)
+    documents = CaseDocumentSerializer(many=True, read_only=True)
+    # download_url = serializers.SerializerMethodField()
+    # file_size = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
+
+
+    class Meta:
+        model = CaseSubmission
+        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'status', 'documents']
+
+
+    def get_name(self, obj):
+        # User -> Profile -> Name sequence check
+        try:
+            if obj.user and hasattr(obj.user, 'profile'):
+                return obj.user.profile.name or "No Name Provided"
+        except Exception:
+            return "Unknown Author"
+        return "Unknown Author"
+
+    # def get_content_snippet(self, obj):
+    #     return obj.press_release[:150] + "..." if obj.press_release else ""
+    
+    
+    def get_avatar(self, obj):
+        # user-er profile ebong avatar ache kina check kora
+        if hasattr(obj.user, 'profile') and obj.user.profile.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.user.profile.avatar.url)
+            return obj.user.profile.avatar.url
+        return None
+    
+    def get_status(self, obj):
+        user = obj.user
+        if not user or not hasattr(user, 'profile'):
+            return None
+        p = user.profile
+        s = getattr(user, 'social_link', None)
+        top_badge = "Legion"
+        if p.total_letters >= 500000 or p.total_posts >= 150:
+            top_badge = "Omega"
+        elif p.total_letters >= 250000 or p.total_posts >= 75:
+            top_badge = "Phi"
+        elif p.total_letters >= 50 or p.total_posts >= 2:
+            top_badge = "Sigma"
+
+        is_verified = s.connected_count >= 2 if s else False
+        is_large_contributor = p.total_posts > 200
+        has_star = p.has_podcast_story
+        return {
+            "top_badge": top_badge,
+            "is_verified": is_verified,
+            "is_large_contributor": is_large_contributor,
+            "has_star": has_star
+        }
