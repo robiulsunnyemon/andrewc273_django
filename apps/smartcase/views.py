@@ -15,6 +15,8 @@ from apps.smartcase.permissions import IsOwnerOrReadOnly
 
 from .models import CaseSubmission, CaseDocument
 from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer
+from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
 
 client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
 
@@ -147,9 +149,26 @@ class CaseSubmissionListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
    
     def get(self, request):
+        search_query = request.query_params.get("search", "").strip()
         cases = CaseSubmission.objects.all().order_by('-created_at')
+
+        if search_query:
+            cases = cases.filter(
+            Q(case_title__icontains=search_query) | 
+            Q(case_number__icontains=search_query) | 
+            Q(state__icontains=search_query) |
+            Q(documents__title__icontains=search_query) |
+            Q(documents__file__icontains=search_query)
+        ).distinct() 
+
+        # Pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = 10 
+
+        paginated_cases = paginator.paginate_queryset(cases, request)
         serializer = CaseCardSerializer(cases, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return paginator.get_paginated_response(serializer.data)
+        # return Response(serializer.data, status=status.HTTP_200_OK)
 
    
     def post(self, request):
@@ -238,6 +257,25 @@ class CaseMediaSubmissionListAPIView(APIView):
     permission_classes = [IsAuthenticated]
    
     def get(self, request):
+        search_query = request.query_params.get("search", "").strip()
         cases = CaseSubmission.objects.all().order_by('-created_at')
+
+        if search_query:
+            cases = cases.filter(
+            Q(case_title__icontains=search_query) | 
+            Q(case_number__icontains=search_query) | 
+            Q(state__icontains=search_query) |
+            Q(documents__title__icontains=search_query) |
+            Q(documents__file__icontains=search_query)
+        ).distinct() 
+
+        # Pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = 5 
+
+        paginated_cases = paginator.paginate_queryset(cases, request)
+        
         serializer = CaseCardMediaSerializer(cases, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
+    
         return Response(serializer.data, status=status.HTTP_200_OK)
