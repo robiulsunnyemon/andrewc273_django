@@ -3,12 +3,18 @@ from rest_framework import serializers
 
 
 
-from .models import LegalDocument
+from .models import FAQ, LegalDocument
 
 class LegalDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = LegalDocument
         fields = ['title', 'slug', 'content', 'version', 'last_updated']
+
+
+class FAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FAQ
+        fields = ['question', 'answer', 'order']
 
 
 # class PageSectionSerializer(serializers.ModelSerializer):

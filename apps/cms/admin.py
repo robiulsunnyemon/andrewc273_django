@@ -8,7 +8,7 @@
 
 from unfold.admin import ModelAdmin
 from django.contrib import admin
-from .models import LegalDocument
+from .models import FAQ, LegalDocument
 
 @admin.register(LegalDocument)
 class LegalDocumentAdmin(ModelAdmin):
@@ -19,6 +19,12 @@ class LegalDocumentAdmin(ModelAdmin):
     search_fields = ('title', 'slug')
     
     list_filter = ('slug', 'version')
+
+@admin.register(FAQ)
+class FAQAdmin(ModelAdmin):
+    list_display = ('question', 'order', 'is_active')
+    list_editable = ('order', 'is_active')
+    search_fields = ('question',)
 
    
 # @admin.register(Page)

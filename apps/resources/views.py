@@ -38,3 +38,5 @@ class LegalFormDetailView(APIView):
             "status": "success",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
+    
+    

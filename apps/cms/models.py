@@ -19,3 +19,17 @@ class LegalDocument(models.Model):
     def __str__(self):
         return self.title
 
+
+
+
+class FAQ(models.Model):
+    question = models.CharField(max_length=255)
+    answer = models.TextField()
+    order = models.PositiveIntegerField(default=0, help_text=" Serial Number (e.g., 1, 2, 3)")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order'] 
+
+    def __str__(self):
+        return self.question
