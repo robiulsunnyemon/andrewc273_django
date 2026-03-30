@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from rest_framework import permissions
+from rest_framework.permissions import  AllowAny
 
 
 from apps.smartcase import permissions
@@ -303,7 +304,7 @@ class UserCaseStatsView(APIView):
 #accepted case list view for user dashboard
 
 class AcceptedCaseListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         
@@ -332,7 +333,7 @@ class AcceptedCaseListView(APIView):
    
 
 class AcceptedCaseDetailAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [ AllowAny,IsOwnerOrReadOnly]
 
     def get_object(self, pk):
         try:
