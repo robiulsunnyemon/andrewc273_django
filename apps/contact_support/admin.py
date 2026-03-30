@@ -1,0 +1,9 @@
+from django.contrib import admin
+
+# Register your models here.
+from .models import ContactUs
+@admin.register(ContactUs)
+class ContactUsAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'email','phone_number', 'subject',  'created_at')
+    list_filter = ('is_read', 'created_at')
+    search_fields = ('first_name', 'last_name', 'email', 'phone_number')
