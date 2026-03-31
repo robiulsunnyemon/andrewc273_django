@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,14 +24,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@qbn&@raick0x)i6d-zs)24_r5a)uoi8s#ukv@+e6!a^6624oh'
+DEFAULT_SECRET_KEY = 'django-insecure-@qbn&@raick0x)i6d-zs)24_r5a)uoi8s#ukv@+e6!a^6624oh'
+SECRET_KEY = os.getenv("SECRET_KEY", DEFAULT_SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "0") == "1"
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost"]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "0") == "1"
+CORS_ALLOWED_ORIGINS = [
+    o.strip() for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()
+]
 
 CORS_ALLOW_METHODS = ['DELETE','GET','OPTIONS','PATCH','POST','PUT']
 
@@ -125,13 +132,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'projects.wsgi.application'
+ASGI_APPLICATION = 'projects.asgi.application'
 
+
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
         },
     },
 }
@@ -141,15 +152,17 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+SQLITE_PATH = os.getenv("SQLITE_PATH", str(BASE_DIR / "db.sqlite3"))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': SQLITE_PATH,
     }
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://andrewc273.softvencealpha.com",
+    o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
 ]
 
 
@@ -189,18 +202,18 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Gmail SMTP server
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'sakhawatdev5@gmail.com'
-EMAIL_HOST_PASSWORD = 'qnlogyzjlkqkcffn'  # Gmail app password
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "no-reply@example.com"
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-import os
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_URL = '/static/'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 MEDIA_URL = '/media/'
@@ -220,10 +233,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
 
-STRIPE_SECRET_KEY = "sk_test_51STbiQ7Q7Te59nusmcQjo8KV3r6qx2SEHIpSoCZxZ1io5aQF6addNt7U4rLL5Gn24lvBFm14G4HWj8Vp0BaRSAJA00bWOsj3Ch"
-STRIPE_PUBLISHABLE_KEY = "pk_test_51STbiQ7Q7Te59nushWPgro7CcExKcpmppJLN7mJgIqZjIAdQe63pwZfOxAxCcMBhouv3KIHHbjLResMCJ5BZWWaH005e9H1HgX"
-
-# STRIPE_WEBHOOK_SECRET = "whsec_b56d6e1125481467e5d7fbd3c7ac244e5342e2e22c195b2660564963e31ad4aa"
-STRIPE_WEBHOOK_SECRET = "whsec_sAH6XJmUH8KlvYRdyCWW82oQ2y5eE1TD"  # Stripe webhook secret for testting
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
 OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
