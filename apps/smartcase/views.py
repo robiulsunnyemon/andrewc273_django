@@ -156,7 +156,8 @@ class CaseSubmissionListCreateAPIView(APIView):
     def get(self, request):
         
         search_query = request.query_params.get("search", "").strip()
-        cases = CaseSubmission.objects.all().order_by('-created_at')
+        #cases = CaseSubmission.objects.all().order_by('-created_at')
+        cases = CaseSubmission.objects.filter(user=request.user).order_by('-created_at')
         
 
         if search_query:
@@ -173,7 +174,7 @@ class CaseSubmissionListCreateAPIView(APIView):
         paginator.page_size = 10 
 
         paginated_cases = paginator.paginate_queryset(cases, request)
-        serializer = CaseCardSerializer(cases, many=True, context={'request': request})
+        serializer = CaseCardSerializer(paginated_cases, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
         # return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -282,7 +283,7 @@ class CaseMediaSubmissionListAPIView(APIView):
 
         paginated_cases = paginator.paginate_queryset(cases, request)
         
-        serializer = CaseCardMediaSerializer(cases, many=True, context={'request': request})
+        serializer = CaseCardMediaSerializer(paginated_cases, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
     
         return Response(serializer.data, status=status.HTTP_200_OK)
