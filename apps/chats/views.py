@@ -40,7 +40,7 @@ class RoomListCreateView(APIView):
 
         # Pagination
         paginator = PageNumberPagination()
-        paginator.page_size = 10   
+        paginator.page_size = 2  
 
         paginated_rooms = paginator.paginate_queryset(rooms, request)
         serializer = RoomSerializer(paginated_rooms, many=True)
@@ -87,9 +87,29 @@ class RoomDetailView(APIView):
         if request.user != room.user_1 and request.user != room.user_2:
             return Response({"detail": "You do not have permission to view this room."},
                             status=status.HTTP_403_FORBIDDEN)
+        messages_queryset = room.messages.all().order_by('-created_at')
+
+        # 3. Setup Pagination
+        paginator = PageNumberPagination()
+        paginator.page_size = 10  # As per your original request
         
-        serializer = RoomDetailSerializer(room)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginated_messages = paginator.paginate_queryset(messages_queryset, request)
+        
+        # 4. Serialize
+        # Serialize the room info (without the 'messages' field to avoid double loading)
+        room_data = RoomSerializer(room).data
+        # Serialize only the current page of messages
+        message_serializer = MessageSerializer(paginated_messages, many=True)
+
+        # 5. Build Custom Paginated Response
+        # This keeps the room info at the top and adds pagination links for the messages
+        return paginator.get_paginated_response({
+            'room': room_data,
+            'messages': message_serializer.data
+        })
+        
+        # serializer = RoomDetailSerializer(room)
+        # return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

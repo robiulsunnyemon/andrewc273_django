@@ -61,6 +61,13 @@ INSTALLED_APPS = [
     'apps.chats',
     'channels',
     'apps.smartcase',
+    'apps.prisons',
+    'apps.contact_support',
+    'apps.cms',
+    #
+    'ckeditor',
+     'ckeditor_uploader',
+    "apps.resources",
 
 
 ]
@@ -198,6 +205,7 @@ STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+CKEDITOR_UPLOAD_PATH = "uploads/"
 
 
 # Default primary key field type
