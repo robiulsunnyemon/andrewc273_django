@@ -31,12 +31,42 @@ class CaseDocumentSerializer(serializers.ModelSerializer):
     #     except: return False
 
 class CaseSubmissionSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+
     documents = CaseDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status', 'court_type', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
+        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status','status','court_type', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
     
         read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at']
+        # status field to show if case is pending, accepted or rejected
+    def get_status(self, obj):
+        user = obj.user
+        if not user or not hasattr(user, 'profile'):
+            return None
+        p = user.profile
+        s = getattr(user, 'social_link', None)
+        top_badge = "Legion"
+        if p.total_letters >= 500000 or p.total_posts >= 150:
+            top_badge = "Omega"
+        elif p.total_letters >= 250000 or p.total_posts >= 75:
+            top_badge = "Phi"
+        # elif p.total_letters >= 50 or p.total_posts >= 2:
+        #     top_badge = "Sigma"
+
+        is_verified = s.connected_count >= 2 if s else False
+        is_large_contributor = p.total_posts > 200
+        has_star = p.has_podcast_story
+        return {
+            "top_badge": top_badge,
+            "is_verified": is_verified,
+            "is_large_contributor": is_large_contributor,
+            "has_star": has_star
+        }
+
+        
+
+    
 
 class CaseCardSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
