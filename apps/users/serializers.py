@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from rest_framework.exceptions import ValidationError
 from .models import Profile, SocialLink
+from apps.subscription.models import Subscription
 User = get_user_model()
 
 from django.utils.timezone import now, timedelta
@@ -161,10 +162,26 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
+    subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields = ["email", "name", "organization", "location", "phone_number", "avatar",'total_letters', 'total_posts', 'has_podcast_story']
+        fields = ["email", "name", "organization", "location", "phone_number", "avatar", "subscription", "total_letters", "total_posts", "has_podcast_story"]
+
+    def get_subscription(self, obj):
+        try:
+            sub = Subscription.objects.get(user=obj.user)
+        except Subscription.DoesNotExist:
+            return None
+
+        return {
+            "package": sub.package,
+            "billing_interval": sub.billing_interval,
+            "auto_renew": sub.auto_renew,
+            "is_active": sub.is_active,
+            "current_period_start": sub.current_period_start,
+            "current_period_end": sub.current_period_end,
+        }
 
 
 class SocialLinkSerializer(serializers.ModelSerializer):
