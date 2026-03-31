@@ -166,8 +166,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-<<<<<<< HEAD
-        fields = ["email", "name", "organization", "location", "phone_number", "avatar", "subscription"]
+        fields = ["email", "name", "organization", "location", "phone_number", "avatar", "subscription", "total_letters", "total_posts", "has_podcast_story"]
 
     def get_subscription(self, obj):
         try:
@@ -183,9 +182,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "current_period_start": sub.current_period_start,
             "current_period_end": sub.current_period_end,
         }
-=======
-        fields = ["email", "name", "organization", "location", "phone_number", "avatar",'total_letters', 'total_posts', 'has_podcast_story']
->>>>>>> dab998d8aa54c1e9c9109919853b763ee9a8a95b
 
 
 class SocialLinkSerializer(serializers.ModelSerializer):
