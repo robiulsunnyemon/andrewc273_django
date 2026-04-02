@@ -296,6 +296,7 @@ class UserCaseStatsView(APIView):
     def get(self, request):
         stats = CaseSubmission.objects.filter(user=request.user).aggregate(
             total=Count('id'),
+            total_podcast=Count('documents', distinct=True),
             pending=Count('id', filter=Q(case_status='pending')),
             accepted=Count('id', filter=Q(case_status='accepted')),
             rejected=Count('id', filter=Q(case_status='rejected'))
