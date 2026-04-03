@@ -23,6 +23,7 @@ from .models import CaseSubmission, CaseDocument
 from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer
 from django.db.models import Q, Count
 from rest_framework.pagination import PageNumberPagination
+from .throttles import AIUsageThrottle
 
 client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
 
@@ -105,6 +106,9 @@ def analyze_case_link(link_url):
             continue
 
 class AIEnhanceTextView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [AIUsageThrottle]
+    
     def get(self, request):
         test_text = "theis name is al"
         ai_response = enhance_case_text(test_text)
@@ -120,6 +124,8 @@ class AIEnhanceTextView(APIView):
         return Response(ai_response, status=status.HTTP_200_OK)
    
 class AIAnalyzeLinkView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [AIUsageThrottle]
     def get (self, request):
         return Response({"message": "Send a POST request with 'link' to analyze."},status=status.HTTP_200_OK)   
     def post(self, request):
