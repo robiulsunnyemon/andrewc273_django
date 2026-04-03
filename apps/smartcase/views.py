@@ -334,6 +334,8 @@ class AcceptedCaseListView(APIView):
         return paginator.get_paginated_response(serializer.data)
     
    
+       
+   
 
 class AcceptedCaseDetailAPIView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
