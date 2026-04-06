@@ -10,12 +10,22 @@ class CaseDocumentSerializer(serializers.ModelSerializer):
         fields = ['id', 'case','title', 'file','download_url', 'file_size',  'uploaded_at']
         read_only_fields = ['uploaded_at']
 
+    # def get_download_url(self, obj):
+    #     request = self.context.get('request')
+    #     if request:
+    #         # Full path: 
+    #         return request.build_absolute_uri(f"/api/documents/download/{obj.id}/")
+        
+    #     return f"/api/documents/download/{obj.id}/"
     def get_download_url(self, obj):
         request = self.context.get('request')
+        
         if request:
-            # Full path: 
-            return request.build_absolute_uri(f"/api/documents/download/{obj.id}/")
-        return f"/api/documents/download/{obj.id}/"
+            return request.build_absolute_uri(obj.file.url)
+        
+        return obj.file.url
+    
+    
 
     def get_file_size(self, obj):
         try:

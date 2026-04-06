@@ -15,7 +15,6 @@ from rest_framework import permissions
 from rest_framework.permissions import  AllowAny
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-
 # from apps.smartcase import permissions
 from apps.smartcase.permissions import IsOwnerOrReadOnly
 
