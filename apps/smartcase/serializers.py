@@ -46,7 +46,7 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
     documents = CaseDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status','status','court_type', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
+        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status','status','court_type','key_legal_arguments', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
     
         read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at']
         # status field to show if case is pending, accepted or rejected
