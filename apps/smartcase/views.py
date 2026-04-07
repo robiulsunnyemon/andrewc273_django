@@ -15,7 +15,6 @@ from rest_framework import permissions
 from rest_framework.permissions import  AllowAny
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-
 # from apps.smartcase import permissions
 from apps.smartcase.permissions import IsOwnerOrReadOnly
 
@@ -23,6 +22,7 @@ from .models import CaseSubmission, CaseDocument
 from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer
 from django.db.models import Q, Count
 from rest_framework.pagination import PageNumberPagination
+from .throttles import AIUsageThrottle
 
 client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
 
@@ -105,6 +105,9 @@ def analyze_case_link(link_url):
             continue
 
 class AIEnhanceTextView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [AIUsageThrottle]
+    
     def get(self, request):
         test_text = "theis name is al"
         ai_response = enhance_case_text(test_text)
@@ -120,6 +123,8 @@ class AIEnhanceTextView(APIView):
         return Response(ai_response, status=status.HTTP_200_OK)
    
 class AIAnalyzeLinkView(APIView):
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [AIUsageThrottle]
     def get (self, request):
         return Response({"message": "Send a POST request with 'link' to analyze."},status=status.HTTP_200_OK)   
     def post(self, request):
@@ -295,10 +300,11 @@ class UserCaseStatsView(APIView):
 
     def get(self, request):
         stats = CaseSubmission.objects.filter(user=request.user).aggregate(
-            total=Count('id'),
-            pending=Count('id', filter=Q(case_status='pending')),
-            accepted=Count('id', filter=Q(case_status='accepted')),
-            rejected=Count('id', filter=Q(case_status='rejected'))
+            total=Count('id',distinct=True),
+            total_podcast=Count('documents', distinct=True),
+            pending=Count('id', filter=Q(case_status='pending'),distinct=True),
+            accepted=Count('id', filter=Q(case_status='accepted'),distinct=True),
+            rejected=Count('id', filter=Q(case_status='rejected'),distinct=True)
         )
         return Response({"case_stats": "success", "data": stats})
     
@@ -332,6 +338,8 @@ class AcceptedCaseListView(APIView):
         serializer = CaseCardSerializer(paginated_cases, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
     
+   
+       
    
 
 class AcceptedCaseDetailAPIView(APIView):

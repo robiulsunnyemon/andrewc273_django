@@ -1,5 +1,6 @@
-from django.db import models
 
+from ckeditor.fields import RichTextField
+from django.db import models
 # Create your models here.
 
 class CaseSubmission(models.Model):
@@ -14,6 +15,7 @@ class CaseSubmission(models.Model):
     author = models.CharField(max_length=255, blank=True, null=True)
     press_release = models.TextField(blank=True, null=True,)
     press_release_enhanced = models.TextField(blank=True, null=True, help_text="Polished version by AI")
+    key_legal_arguments =RichTextField(blank=True, null=True, help_text="Key legal arguments extracted by AI")
     state = models.CharField(max_length=100)
     federal_district = models.CharField(max_length=255, blank=True, null=True)
     court_type = models.CharField(max_length=100, blank=True, null=True)

@@ -160,13 +160,19 @@ class ChangePasswordSerializer(serializers.Serializer):
         return attrs
 
 
+class SocialLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialLink
+        fields = ["facebook", "x", "instagram", "youtube", "truth"]
+
 class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
     subscription = serializers.SerializerMethodField()
+    social_link = SocialLinkSerializer(source="user.social_link", read_only=True)
 
     class Meta:
         model = Profile
-        fields = ["email", "name", "organization", "location", "phone_number", "avatar", "subscription", "total_letters", "total_posts", "has_podcast_story"]
+        fields = ["email", "name", "organization", "location", "phone_number", "avatar", "subscription", "total_letters", "total_posts", "has_podcast_story",'social_link']
 
     def get_subscription(self, obj):
         try:
@@ -184,7 +190,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         }
 
 
-class SocialLinkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SocialLink
-        fields = ["facebook", "x", "instagram", "youtube", "truth"]
+# class SocialLinkSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = SocialLink
+#         fields = ["facebook", "x", "instagram", "youtube", "truth"]
