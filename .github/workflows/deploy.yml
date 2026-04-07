@@ -18,6 +18,7 @@ jobs:
           script: |
             set -e
 
+            # Project directory
             cd /root/andrewc273_django
 
             # Ensure server code matches main branch exactly
@@ -30,11 +31,14 @@ jobs:
             # Ensure static folder exists to avoid warnings
             mkdir -p ./static
 
-            # Apply migrations
+            # Apply migrations inside the running web container
             docker compose run --rm web python manage.py migrate
 
             # Collect static files
             docker compose run --rm web python manage.py collectstatic --noinput
 
-            # Start containers
+            # Restart containers
             docker compose up -d
+
+            # Optional: check migrations applied
+            docker compose run --rm web python manage.py showmigrations
