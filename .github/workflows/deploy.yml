@@ -18,27 +18,33 @@ jobs:
           script: |
             set -e
 
-            # Project directory
+            # Go to project directory
             cd /root/andrewc273_django
 
-            # Ensure server code matches main branch exactly
+            echo "📥 Updating code..."
             git fetch --all
             git reset --hard origin/main
+            git clean -fd
 
-            # Rebuild docker images without cache
+            echo "🐳 Rebuilding Docker images..."
             docker compose build --no-cache
 
-            # Ensure static folder exists to avoid warnings
+            echo "📁 Ensuring static directory..."
             mkdir -p ./static
 
-            # Apply migrations inside the running web container
-            docker compose run --rm web python manage.py migrate
+            echo "🛑 Stopping old containers (avoid 502)..."
+            docker compose down
 
-            # Collect static files
-            docker compose run --rm web python manage.py collectstatic --noinput
-
-            # Restart containers
+            echo "🚀 Starting containers..."
             docker compose up -d
 
-            # Optional: check migrations applied
-            docker compose run --rm web python manage.py showmigrations
+            echo "📦 Running migrations..."
+            docker compose exec web python manage.py migrate
+
+            echo "📦 Collecting static files..."
+            docker compose exec web python manage.py collectstatic --noinput
+
+            echo "✅ Checking migrations..."
+            docker compose exec web python manage.py showmigrations
+
+            echo "🎉 Deployment completed successfully!"
