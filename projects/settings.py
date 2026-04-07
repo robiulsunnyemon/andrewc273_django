@@ -216,7 +216,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-CKEDITOR_UPLOAD_PATH = "uploads/"
+# CKEDITOR_UPLOAD_PATH = "uploads/"
 
 
 # Default primary key field type
@@ -235,4 +235,48 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
+# STRIPE_WEBHOOK_SECRET = "whsec_b56d6e1125481467e5d7fbd3c7ac244e5342e2e22c195b2660564963e31ad4aa"
+STRIPE_WEBHOOK_SECRET = "whsec_sAH6XJmUH8KlvYRdyCWW82oQ2y5eE1TD"  # Stripe webhook secret for testting
+
+OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
+
+CKEDITOR_ALLOW_NONIMAGE_FILES = True
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'height': 500,
+        'width': '100%',
+        
+        'toolbar': [
+            ['Source', '-', 'Save', 'NewPage', 'Preview'],
+            ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord'],
+            ['Undo', 'Redo'],
+            ['Find', 'Replace', '-', 'SelectAll'],
+            ['Bold', 'Italic', 'Underline', 'Strike'],
+            ['Subscript', 'Superscript'],
+            ['NumberedList', 'BulletedList'],
+            ['Outdent', 'Indent', 'Blockquote'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink', 'Anchor'],
+            ['Image', 'Table', 'HorizontalRule', 'Smiley'],
+            ['SpecialChar', 'PageBreak'],
+            ['Styles', 'Format', 'Font', 'FontSize'],
+            ['TextColor', 'BGColor'],
+            ['Maximize', 'ShowBlocks'],
+        ],
+
+        'extraPlugins': ','.join([
+            'uploadimage',     # image upload
+            'image2',
+            'filebrowser',     # file upload
+            'table',           # table support
+            'clipboard',
+            'dialog',
+            'widget',
+            'lineutils',
+        ]),
+    }
+}
 OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
