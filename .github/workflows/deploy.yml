@@ -17,9 +17,28 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             set -e
+
+            # Project directory
             cd /root/andrewc273_django
-            git pull
-            docker compose build
+
+            # Ensure server code matches main branch exactly
+            git fetch --all
+            git reset --hard origin/main
+
+            # Rebuild docker images without cache
+            docker compose build --no-cache
+
+            # Ensure static folder exists to avoid warnings
+            mkdir -p ./static
+
+            # Apply migrations inside the running web container
             docker compose run --rm web python manage.py migrate
+
+            # Collect static files
             docker compose run --rm web python manage.py collectstatic --noinput
+
+            # Restart containers
             docker compose up -d
+
+            # Optional: check migrations applied
+            docker compose run --rm web python manage.py showmigrations
