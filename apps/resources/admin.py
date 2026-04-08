@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from django.contrib import admin
-from .models import LegalForm, FormFile,Prison
+from .models import LegalForm, FormFile, LegalLibrary,Prison
 from unfold.admin import ModelAdmin
 # 
 class FormFileInline(admin.TabularInline):
@@ -43,3 +43,12 @@ class LegalFormAdmin(admin.ModelAdmin):
 class PrisonAdmin(ModelAdmin):
     list_display = ('code', 'name', 'city', 'state', 'security_level')
     search_fields = ('name', 'city', 'state')
+
+
+#legal library
+
+@admin.register(LegalLibrary)
+class LegalLibraryAdmin(ModelAdmin):
+    list_display = ('title', 'slug', 'created_at')
+    prepopulated_fields = {'slug': ('title',)}
+    search_fields = ('title',)

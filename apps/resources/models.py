@@ -4,6 +4,7 @@ from django.db import models
 import os
 from django.db import models
 from ckeditor_uploader.fields import RichTextUploadingField
+from ckeditor.fields import RichTextField
 
 class LegalForm(models.Model):
     title = models.CharField(max_length=255) 
@@ -28,16 +29,17 @@ class FormFile(models.Model):
         return "0 MB"
     
 
-# class LegalLibrary(models.Model):
-#     title = models.CharField(max_length=255) 
-#     slug = models.SlugField(unique=True) 
-#     short_description = models.CharField(max_length=500, blank=True,null=True)
-#     summary = models.TextField(blank=True, null=True)
-#     full_text = RichTextUploadingField(config_name='default')
-#     created_at = models.DateTimeField(auto_now=True)
+class LegalLibrary(models.Model):
+    title = models.CharField(max_length=255) 
+    slug = models.SlugField(unique=True) 
+    short_description = models.CharField(max_length=500, blank=True,null=True)
+    summary = models.TextField(blank=True, null=True)
+    full_text = RichTextField(config_name='default')
+    uploade_file = models.FileField(upload_to='legal/library_files/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now=True)
 
-#     def __str__(self):
-#         return self.title
+    def __str__(self):
+        return self.title
 
 
 

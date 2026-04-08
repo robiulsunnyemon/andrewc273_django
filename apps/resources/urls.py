@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import LegalFormListView, LegalFormDetailView, PrisonListView, PrisonDetailView
+from .views import LegalFormListView, LegalFormDetailView, LegalLibraryDetailView, LegalLibraryListView, PrisonListView, PrisonDetailView
 
 urlpatterns = [
     
@@ -8,4 +8,7 @@ urlpatterns = [
 
     path("prisons/", PrisonListView.as_view()),
     path("prisons/<int:pk>/", PrisonDetailView.as_view()),
+
+    path('legal-library/', LegalLibraryListView.as_view(), name='library-list'),
+    path('legal-library/<int:pk>/', LegalLibraryDetailView.as_view(), name='library-detail'),
 ]

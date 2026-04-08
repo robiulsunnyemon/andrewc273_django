@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import LegalForm, FormFile,Prison
+from .models import LegalForm, FormFile,Prison,LegalLibrary
 
 class FormFileSerializer(serializers.ModelSerializer):
     size = serializers.ReadOnlyField(source='file_size')
@@ -60,3 +60,45 @@ class PrisonSerializer(serializers.ModelSerializer):
             # 'image_small'
         ]
         read_only_fields = ['id','url', 'image_normal', 'image_small']   
+
+
+
+
+
+
+class LegalLibrarySerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+    file_size = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LegalLibrary
+        fields = [
+            'id', 
+            'title', 
+            'slug', 
+            'short_description', 
+            'summary', 
+            'full_text', 
+            'uploade_file', 
+            'file_url',     
+            'file_size',    
+            'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']
+
+    def get_file_url(self, obj):
+        if obj.uploade_file:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.uploade_file.url)
+            return obj.uploade_file.url
+        return None
+
+    def get_file_size(self, obj):
+        if obj.uploade_file:
+            try:
+                size = obj.uploade_file.size
+                return f"{round(size / (1024 * 1024), 2)} MB"
+            except:
+                return "0 MB"
+        return "0 MB"

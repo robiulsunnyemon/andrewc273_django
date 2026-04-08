@@ -163,8 +163,12 @@ class CaseSubmissionListCreateAPIView(APIView):
     def get(self, request):
         
         search_query = request.query_params.get("search", "").strip()
+        state_filter = request.query_params.get("state", "").strip()
         #cases = CaseSubmission.objects.all().order_by('-created_at')
         cases = CaseSubmission.objects.filter(user=request.user).order_by('-created_at')
+
+        if state_filter:
+            cases = cases.filter(state__iexact=state_filter)
         
 
         if search_query:
@@ -273,7 +277,11 @@ class CaseMediaSubmissionListAPIView(APIView):
    
     def get(self, request):
         search_query = request.query_params.get("search", "").strip()
+        state_filter = request.query_params.get("state", "").strip()
         cases = CaseSubmission.objects.all().order_by('-created_at')
+
+        if state_filter:
+            cases = cases.filter(state__iexact=state_filter)
 
         if search_query:
             cases = cases.filter(
@@ -318,10 +326,15 @@ class AcceptedCaseListView(APIView):
     def get(self, request):
         
         search_query = request.query_params.get("search", "").strip()
+        state_filter = request.query_params.get("state", "").strip()
+        
         cases = CaseSubmission.objects.filter(
             
             case_status='accepted'
         ).order_by('-created_at')
+
+        if state_filter:
+            cases = cases.filter(state__iexact=state_filter)
 
         
         if search_query:
@@ -344,7 +357,7 @@ class AcceptedCaseListView(APIView):
    
 
 class AcceptedCaseDetailAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly,IsOwnerOrReadOnly]
 
     def get_object(self, pk):
         try:
