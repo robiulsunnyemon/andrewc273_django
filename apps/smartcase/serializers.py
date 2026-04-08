@@ -88,7 +88,7 @@ class CaseCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet', 'status', 'case_status']
+        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet', 'status', 'case_status','state']
 
     def get_name(self, obj):
         # User -> Profile -> Name sequence check
