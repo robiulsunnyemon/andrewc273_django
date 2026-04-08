@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import LegalForm,LegalLibrary, Prison
-from .serializers import LegalFormListSerializer, LegalFormDetailSerializer, LegalLibrarySerializer, PrisonSerializer
+from .serializers import LegalFormListSerializer, LegalFormDetailSerializer, LegalLibraryListSerializer, LegalLibrarySerializer, PrisonSerializer
 from rest_framework import status
 from rest_framework import filters
 from rest_framework.generics import GenericAPIView
@@ -109,7 +109,7 @@ class PrisonDetailView(GenericAPIView):
 #legal library list and detail view
 class LegalLibraryListView(GenericAPIView):
     queryset = LegalLibrary.objects.all().order_by("-created_at")
-    serializer_class = LegalLibrarySerializer
+    serializer_class = LegalLibraryListSerializer
     pagination_class = PrisonPagination
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

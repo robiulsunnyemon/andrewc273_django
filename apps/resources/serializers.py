@@ -102,3 +102,25 @@ class LegalLibrarySerializer(serializers.ModelSerializer):
             except:
                 return "0 MB"
         return "0 MB"
+
+class LegalLibraryListSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LegalLibrary
+        fields = [
+            'id', 
+            'title', 
+            'slug',
+            'short_description', 
+            'file_url', 
+            'created_at'
+        ]
+
+    def get_file_url(self, obj):
+        if obj.uploade_file:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.uploade_file.url)
+            return obj.uploade_file.url
+        return None
