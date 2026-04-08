@@ -24,6 +24,7 @@ from django.db.models import Q, Count
 from rest_framework.pagination import PageNumberPagination
 from .throttles import AIUsageThrottle
 
+
 client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
 
 def enhance_case_text(user_text):

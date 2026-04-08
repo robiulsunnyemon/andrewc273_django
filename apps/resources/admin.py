@@ -2,13 +2,13 @@ from django.contrib import admin
 
 # Register your models here.
 from django.contrib import admin
-from .models import LegalForm, FormFile
-
+from .models import LegalForm, FormFile,Prison
+from unfold.admin import ModelAdmin
 # 
 class FormFileInline(admin.TabularInline):
     model = FormFile
-    extra = 2 # ডিফল্টভাবে ১টি খালি ফাইল আপলোডের ঘর দেখাবে
-    fields = ('file_name', 'pdf_file') # কোন ফিল্ডগুলো দেখাবে
+    extra = 2 # default 
+    fields = ('file_name', 'pdf_file') # displayed fields in the inline form
 
 @admin.register(LegalForm)
 class LegalFormAdmin(admin.ModelAdmin):
@@ -36,3 +36,10 @@ class LegalFormAdmin(admin.ModelAdmin):
 
 
 # admin.site.register(FormFile)
+
+#prison
+
+@admin.register(Prison)
+class PrisonAdmin(ModelAdmin):
+    list_display = ('code', 'name', 'city', 'state', 'security_level')
+    search_fields = ('name', 'city', 'state')

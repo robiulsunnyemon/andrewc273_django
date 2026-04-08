@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'ckeditor',
      'ckeditor_uploader',
     "apps.resources",
+    'django_filters',
 
 
 ]
@@ -86,7 +87,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
 }
+
 
 
 from datetime import timedelta
@@ -211,7 +216,11 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or "no-reply@example.com"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_URL = '/static/'
+WHITENOISE_IGNORE_MISSING_FILES = True
+WHITENOISE_USE_FINDERS = True
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+
 
 
 MEDIA_URL = '/media/'

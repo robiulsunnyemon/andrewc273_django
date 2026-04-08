@@ -1,9 +1,11 @@
 from django.urls import path
-from .views import LegalFormListView, LegalFormDetailView
+from .views import LegalFormListView, LegalFormDetailView, PrisonListView, PrisonDetailView
 
 urlpatterns = [
     
     path('legal-forms/', LegalFormListView.as_view(), name='form-list'),
-    
     path('legal-forms/<int:pk>/', LegalFormDetailView.as_view(), name='form-detail'),
+
+    path("prisons/", PrisonListView.as_view()),
+    path("prisons/<int:pk>/", PrisonDetailView.as_view()),
 ]
