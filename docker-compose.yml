@@ -28,13 +28,22 @@ services:
     image: nginx:1.27-alpine
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - staticfiles:/staticfiles:ro
       - media:/media:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
     depends_on:
       - web
       - daphne
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    entrypoint: ["certbot"]
 
 volumes:
   staticfiles:
