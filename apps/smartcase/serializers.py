@@ -46,9 +46,9 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
     documents = CaseDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status','status','court_type','key_legal_arguments', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
+        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status','status','court_type','key_legal_arguments','accepted_at', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
     
-        read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at']
+        read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at', 'accepted_at']
         # status field to show if case is pending, accepted or rejected
     def get_status(self, obj):
         user = obj.user
@@ -88,7 +88,7 @@ class CaseCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet', 'status', 'case_status','state']
+        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet','accepted_at', 'status', 'case_status','state']
 
     def get_name(self, obj):
         # User -> Profile -> Name sequence check
@@ -152,7 +152,7 @@ class CaseCardMediaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'status', 'documents', 'case_status']
+        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'status','accepted_at', 'documents', 'case_status']
 
 
     def get_name(self, obj):
