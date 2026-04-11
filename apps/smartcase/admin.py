@@ -7,6 +7,7 @@ from unfold.admin import ModelAdmin
 class CaseSubmissionAdmin(ModelAdmin):
     list_display = ('id', 'user', 'case_title', 'case_number', 'case_status', 'author', 'state','press_release_enhanced','ai_analysis_summary','created_at')
     search_fields = ('case_title', 'case_number', 'author', 'state','case_status')
+    readonly_fields = ('accepted_at',)
 
 @admin.register(CaseDocument)
 class CaseDocumentAdmin(ModelAdmin):
