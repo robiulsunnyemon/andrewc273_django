@@ -297,7 +297,7 @@ class CaseDetailAPIView(APIView):
         case = self.get_object(pk)
         if case:
             case.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({"message": "Case deleted successfully"}, status=status.HTTP_200_OK)
         return Response({"error": "Case not found"}, status=status.HTTP_404_NOT_FOUND)
     
 #casse media submission list view (for admin dashboard)
