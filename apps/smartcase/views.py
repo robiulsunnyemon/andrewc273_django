@@ -164,8 +164,14 @@ class CaseSubmissionListCreateAPIView(APIView):
         
         search_query = request.query_params.get("search", "").strip()
         state_filter = request.query_params.get("state", "").strip()
+        status_filter = request.query_params.get("status", "all").strip().lower()
         #cases = CaseSubmission.objects.all().order_by('-created_at')
         cases = CaseSubmission.objects.filter(user=request.user).order_by('-created_at')
+        if status_filter != 'all':
+            if status_filter == 'published':
+             cases = cases.filter(case_status='accepted') # 
+            elif status_filter in ['pending', 'rejected']:
+             cases = cases.filter(case_status=status_filter)
 
         if state_filter:
             cases = cases.filter(state__iexact=state_filter)
@@ -191,7 +197,9 @@ class CaseSubmissionListCreateAPIView(APIView):
 
    
     def post(self, request):
-        serializer = CaseSubmissionSerializer(data=request.data)
+        # serializer = CaseSubmissionSerializer(data=request.data)
+        serializer = CaseSubmissionSerializer(data=request.data, context={'request': request})
+        
         if serializer.is_valid():
             case_instance = serializer.save(user=request.user)
 
@@ -226,27 +234,49 @@ class CaseDetailAPIView(APIView):
         serializer = CaseSubmissionSerializer(case)
         return Response(serializer.data)
     
+    # def put(self, request, pk):
+    #     case = self.get_object(pk)
+    #     if not case:
+    #      return Response({"error": "Case not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # # 1. Normal field gulo update hobe (Title, Number, State etc.)
+    
+    #     serializer = CaseSubmissionSerializer(case, data=request.data, partial=True,)
+    
+    #     if serializer.is_valid():
+    #         serializer.save()
+        
+        
+    #         new_files = request.FILES.getlist('files') 
+    #         if new_files:
+    #             for f in new_files:
+    #                 CaseDocument.objects.create(case=case, file=f)
+        
+    #     # Updated data return korbe (documents list shoho)
+    #         updated_data = CaseSubmissionSerializer(case).data
+    #         return Response(updated_data)
+
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     def put(self, request, pk):
         case = self.get_object(pk)
         if not case:
          return Response({"error": "Case not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    # 1. Normal field gulo update hobe (Title, Number, State etc.)
-    
-        serializer = CaseSubmissionSerializer(case, data=request.data, partial=True)
+    # primary fields update hobe (Title, Number, State etc.)
+        serializer = CaseSubmissionSerializer(case, data=request.data, partial=True, context={'request': request})
     
         if serializer.is_valid():
-            serializer.save()
+
+          serializer.save()
+          new_files = request.FILES.getlist('files') 
+          if new_files:
+              for f in new_files:
+                  CaseDocument.objects.create(case=case, file=f)
+
         
-        
-            new_files = request.FILES.getlist('files') 
-            if new_files:
-                for f in new_files:
-                    CaseDocument.objects.create(case=case, file=f)
-        
-        # Updated data return korbe (documents list shoho)
-            updated_data = CaseSubmissionSerializer(case).data
-            return Response(updated_data)
+          updated_data = CaseSubmissionSerializer(case, context={'request': request}).data
+        # Return updated data (including documents list)
+          return Response(updated_data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

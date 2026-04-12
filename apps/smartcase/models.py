@@ -17,7 +17,7 @@ class CaseSubmission(models.Model):
     author = models.CharField(max_length=255, blank=True, null=True)
     press_release = models.TextField(blank=True, null=True,)
     press_release_enhanced = models.TextField(blank=True, null=True, help_text="Polished version by AI")
-    key_legal_arguments = RichTextField(blank=True, null=True, help_text="Key legal arguments extracted by AI")
+    #key_legal_arguments = RichTextField(blank=True, null=True, help_text="Key legal arguments extracted by AI")
     state = models.CharField(max_length=100)
     federal_district = models.CharField(max_length=255, blank=True, null=True)
     court_type = models.CharField(max_length=100, blank=True, null=True)
@@ -49,3 +49,11 @@ class CaseDocument(models.Model):
     file = models.FileField(upload_to='cases/documents/')
     title = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class LegalArgument(models.Model):
+    case = models.ForeignKey(CaseSubmission, related_name='legal_arguments', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    content = models.TextField(blank=True, null=True)              
+
+    def __str__(self):
+        return f"{self.title} - {self.case.case_title}"
