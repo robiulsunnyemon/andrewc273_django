@@ -6,7 +6,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     Assumes the model instance has a `user` attribute.
     """
     def has_object_permission(self, request, view, obj):
-        # GET, HEAD or OPTIONS request shobar jonno allow (Read-only)
+        # GET, HEAD or OPTIONS request all users allow (Read-only)
         if request.method in permissions.SAFE_METHODS:
             return True
 
