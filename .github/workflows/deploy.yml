@@ -18,7 +18,6 @@ jobs:
           script: |
             set -e
 
-            # Go to project directory
             cd /root/andrewc273_django
 
             echo "📥 Updating code..."
@@ -27,24 +26,21 @@ jobs:
             git clean -fd
 
             echo "🐳 Rebuilding Docker images..."
-            docker compose build --no-cache
+            docker-compose build --no-cache
 
-            echo "📁 Ensuring static directory..."
-            mkdir -p ./static
-
-            echo "🛑 Stopping old containers (avoid 502)..."
-            docker compose down
+            echo "🛑 Stopping old containers..."
+            docker-compose down
 
             echo "🚀 Starting containers..."
-            docker compose up -d
+            docker-compose up -d
+
+            echo "⏳ Waiting for containers..."
+            sleep 15
 
             echo "📦 Running migrations..."
-            docker compose exec web python manage.py migrate
+            docker-compose exec -T web python manage.py migrate
 
             echo "📦 Collecting static files..."
-            docker compose exec web python manage.py collectstatic --noinput
-
-            echo "✅ Checking migrations..."
-            docker compose exec web python manage.py showmigrations
+            docker-compose exec -T web python manage.py collectstatic --noinput
 
             echo "🎉 Deployment completed successfully!"
