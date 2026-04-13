@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import CaseSubmission, CaseDocument
-
+from .models import CaseSubmission, CaseDocument, LegalArgument
+from django.db import transaction
 class CaseDocumentSerializer(serializers.ModelSerializer):
     download_url = serializers.SerializerMethodField()
     file_size = serializers.SerializerMethodField()
@@ -40,13 +40,19 @@ class CaseDocumentSerializer(serializers.ModelSerializer):
     #         return obj.file.name.endswith(('.mp4', '.avi', '.mov'))
     #     except: return False
 
+class LegalArgumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LegalArgument
+        fields = ['title', 'content']
+
 class CaseSubmissionSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
 
     documents = CaseDocumentSerializer(many=True, read_only=True)
+    legal_arguments = LegalArgumentSerializer(many=True)
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status','status','court_type','key_legal_arguments','accepted_at', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
+        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status','status','court_type','legal_arguments','accepted_at', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
     
         read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at', 'accepted_at']
         # status field to show if case is pending, accepted or rejected
@@ -73,6 +79,37 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
             "is_large_contributor": is_large_contributor,
             "has_star": has_star
         }
+    
+
+
+    #new add 
+    def create(self, validated_data):
+        
+        arguments_data = validated_data.pop('legal_arguments', [])
+
+        with transaction.atomic():
+            case = CaseSubmission.objects.create(**validated_data)
+            for argument in arguments_data:
+                LegalArgument.objects.create(case=case, **argument)
+            
+        return case
+        
+     # new add 
+    def update(self, instance, validated_data):
+        # legal arguments data ke alada kore niye asha
+        arguments_data = validated_data.pop('legal_arguments', None)
+        
+        #  normal field gulo update kora
+        instance = super().update(instance, validated_data)
+
+        # legal arguments update kora
+        if arguments_data is not None:
+            # existing arguments gulo delete kore deya, tarpor notun gulo create kora
+            instance.legal_arguments.all().delete()
+            for argument in arguments_data:
+                LegalArgument.objects.create(case=instance, **argument)
+                
+        return instance
 
         
 
