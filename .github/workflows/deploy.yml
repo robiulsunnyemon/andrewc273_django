@@ -54,7 +54,7 @@ jobs:
             fi
 
             echo "♻️ Reloading nginx with the certificate..."
-            docker-compose exec nginx nginx -s reload
+            docker-compose exec -T nginx nginx -s reload
 
             echo "📦 Running migrations..."
             docker-compose exec -T web python manage.py migrate
