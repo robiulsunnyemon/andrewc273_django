@@ -31,11 +31,24 @@ jobs:
             echo "🛑 Stopping old containers..."
             docker-compose down
 
+            echo "🔐 Creating dummy certificate for admin.dojapr.com if needed..."
+            if [ ! -d "./certbot/conf/live/admin.dojapr.com" ]; then
+              docker-compose run --rm --entrypoint "" certbot sh -c "mkdir -p /etc/letsencrypt/live/admin.dojapr.com && openssl req -x509 -nodes -newkey rsa:2048 -days 1 -keyout /etc/letsencrypt/live/admin.dojapr.com/privkey.pem -out /etc/letsencrypt/live/admin.dojapr.com/fullchain.pem -subj '/CN=localhost'"
+            fi
+
             echo "🚀 Starting containers..."
             docker-compose up -d
 
             echo "⏳ Waiting for containers..."
             sleep 15
+
+            echo "📜 Requesting/renewing Let's Encrypt certificate..."
+            docker-compose run --rm certbot certonly --webroot --webroot-path=/var/www/certbot \
+              --email "${{ secrets.CERTBOT_EMAIL }}" --agree-tos --no-eff-email \
+              -d "admin.dojapr.com"
+
+            echo "♻️ Reloading nginx with the new certificate..."
+            docker-compose exec nginx nginx -s reload
 
             echo "📦 Running migrations..."
             docker-compose exec -T web python manage.py migrate
