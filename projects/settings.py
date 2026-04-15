@@ -78,8 +78,44 @@ INSTALLED_APPS = [
     "apps.resources",
     'django_filters',
 
+    # Google login
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+
 
 ]
+
+
+SITE_ID = 1
+
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'offline'},
+    }
+}
+
+REST_USE_JWT = True  
+
+ACCOUNT_EMAIL_VERIFICATION = "optional"  
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None  
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
 
 
 
@@ -116,6 +152,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    #google login
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'projects.urls'
