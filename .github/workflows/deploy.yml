@@ -25,14 +25,17 @@ jobs:
             git reset --hard origin/main
             git clean -fd
 
+            echo "🔧 Ensuring certbot directories exist..."
+            mkdir -p certbot/conf certbot/www
+
             echo "🐳 Rebuilding Docker images..."
             docker-compose build --no-cache
 
             echo "🛑 Stopping old containers..."
             docker-compose down
 
-            echo "🔐 Creating dummy certificate for admin.dojapr.com if needed..."
-            if [ ! -d "./certbot/conf/live/admin.dojapr.com" ]; then
+            if [ ! -f "./certbot/conf/live/admin.dojapr.com/fullchain.pem" ]; then
+              echo "🔐 Creating dummy certificate for admin.dojapr.com..."
               docker-compose run --rm --entrypoint "" certbot sh -c "mkdir -p /etc/letsencrypt/live/admin.dojapr.com && openssl req -x509 -nodes -newkey rsa:2048 -days 1 -keyout /etc/letsencrypt/live/admin.dojapr.com/privkey.pem -out /etc/letsencrypt/live/admin.dojapr.com/fullchain.pem -subj '/CN=localhost'"
             fi
 
@@ -42,12 +45,15 @@ jobs:
             echo "⏳ Waiting for containers..."
             sleep 15
 
-            echo "📜 Requesting/renewing Let's Encrypt certificate..."
-            docker-compose run --rm certbot certonly --webroot --webroot-path=/var/www/certbot \
-              --email "${{ secrets.CERTBOT_EMAIL }}" --agree-tos --no-eff-email \
-              -d "admin.dojapr.com"
+            if [ -f "./certbot/conf/live/admin.dojapr.com/fullchain.pem" ]; then
+              echo "📜 Renewing existing Let's Encrypt certificate..."
+              docker-compose run --rm certbot renew --webroot --webroot-path=/var/www/certbot --noninteractive --agree-tos --email "${{ secrets.CERTBOT_EMAIL }}"
+            else
+              echo "📜 Issuing new Let's Encrypt certificate..."
+              docker-compose run --rm certbot certonly --webroot --webroot-path=/var/www/certbot --noninteractive --agree-tos --no-eff-email --email "${{ secrets.CERTBOT_EMAIL }}" -d "admin.dojapr.com"
+            fi
 
-            echo "♻️ Reloading nginx with the new certificate..."
+            echo "♻️ Reloading nginx with the certificate..."
             docker-compose exec nginx nginx -s reload
 
             echo "📦 Running migrations..."
