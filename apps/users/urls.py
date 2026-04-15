@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    SignupView, LoginView,
+    GoogleLoginView, SignupView, LoginView,
     PasswordResetRequestAPIView, PasswordResetOTPVerifyView, PasswordResetChangeAPIView, LogoutView, ChangePassword, DeleteAccountAPIView,
     ProfileDetailAPIView, SocialLinkAPIView, VerifyEmailView, ResendVerificationOTPView
 )
@@ -38,4 +38,7 @@ urlpatterns = [
 
     # Social Links
     path("social-links/", SocialLinkAPIView.as_view(), name="social-links"),
+
+    # Google Login
+    path('google/', GoogleLoginView.as_view(), name='google_login'),
 ]
