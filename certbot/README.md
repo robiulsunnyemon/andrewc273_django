@@ -29,6 +29,14 @@ chmod +x certbot/init-letsencrypt.sh
 docker-compose up -d
 ```
 
+## GitHub Actions
+
+The deploy workflow expects a secret named `CERTBOT_EMAIL` containing the email address you want to use for Let's Encrypt.
+
+```bash
+docker-compose up -d
+```
+
 ## Important notes
 
 - Make sure DNS for `admin.dojapr.com` points to your server.
