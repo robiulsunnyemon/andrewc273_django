@@ -276,3 +276,144 @@ class SocialLinkAPIView(BaseAPIView):
             serializer.save()
             return self.success_response("Social links updated successfully.", data=serializer.data)
         return self.error_response("Validation error", data=serializer.errors)
+
+
+
+
+
+
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+import imghdr
+from urllib.parse import urlparse
+import requests
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from dj_rest_auth.registration.views import SocialLoginView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.files.base import ContentFile
+
+
+
+
+
+class GoogleLoginView(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # let allauth handle authentication
+            response = super().post(request, *args, **kwargs)
+
+            user = getattr(self, "user", None) or request.user
+
+            if not user or not user.is_authenticated:
+                return Response(
+                    {"error": "Authentication failed."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Ensure profile exists
+            profile, created = Profile.objects.get_or_create(user=user)
+
+            # Google data
+            social_account = user.socialaccount_set.first()
+            extra_data = social_account.extra_data if social_account else {}
+
+            first_name = extra_data.get("given_name", "") or ""
+            last_name = extra_data.get("family_name", "") or ""
+            picture_url = extra_data.get("picture", None)
+
+            # ---------------------------
+            # Update Profile fields
+            # ---------------------------
+            if first_name:
+                profile.first_name = first_name
+
+            if last_name:
+                profile.last_name = last_name
+
+            full_name = " ".join([first_name, last_name]).strip()
+            if full_name:
+                profile.name = full_name
+            else:
+                # fallback
+                if not profile.name:
+                    profile.name = user.email.split("@")[0]
+
+            # ---------------------------
+            # Download and save avatar
+            # ---------------------------
+            if picture_url and not profile.avatar:
+                try:
+                    r = requests.get(picture_url, timeout=10)
+                    if r.status_code == 200 and r.content:
+                        img_type = imghdr.what(None, h=r.content)
+
+                        if img_type in ("jpeg", "png", "gif", "bmp", "webp"):
+                            filename = urlparse(picture_url).path.split("/")[-1]
+
+                            if not filename:
+                                filename = f"user_{user.id}_google.{img_type}"
+
+                            if not filename.lower().endswith(
+                                (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp")
+                            ):
+                                ext = "jpg" if img_type == "jpeg" else img_type
+                                filename = f"{filename}.{ext}"
+
+                            profile.avatar.save(
+                                filename,
+                                ContentFile(r.content),
+                                save=False
+                            )
+                except Exception:
+                    pass
+
+            profile.save()
+
+            # keep user active
+            user.is_active = True
+            user.save()
+
+            # JWT tokens
+            refresh = RefreshToken.for_user(user)
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Google login successful.",
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "first_name": profile.first_name,
+                        "last_name": profile.last_name,
+                        "name": profile.name,
+                        "avatar": (
+                            request.build_absolute_uri(profile.avatar.url)
+                            if profile.avatar else None
+                        ),
+                    },
+                },
+                status=status.HTTP_200_OK
+            )
+
+        except OAuth2Error as e:
+            return Response(
+                {
+                    "error": "Failed to fetch Google user info.",
+                    "detail": str(e),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Exception as exc:
+            return Response(
+                {
+                    "error": "Google login failed.",
+                    "detail": str(exc),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
