@@ -38,6 +38,7 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['id', 'room', 'sender',  'content', 'file']
         read_only_fields = ['sender', 'created_at', 'is_read']
+        
 # class MessageSerializer(serializers.ModelSerializer):
 #     receiver = serializers.SerializerMethodField()
 #     sender_name = serializers.ReadOnlyField(source='sender.profile.name')

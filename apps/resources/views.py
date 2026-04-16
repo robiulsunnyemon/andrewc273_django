@@ -75,17 +75,12 @@ class PrisonListView(GenericAPIView):
     ordering_fields = ["name", "city", "state", "id"]
 
     def get(self, request, *args, **kwargs):
-        # first, we filter the queryset based on the search, filter, and ordering parameters
-        queryset = self.filter_queryset(self.get_queryset())
 
-        # then we paginate the filtered queryset
+        queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            # return paginated response with metadata (like total count, next/previous links, etc.)
             return self.get_paginated_response(serializer.data)
-
-        # if no pagination is applied (for displaying all data at once)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
@@ -140,5 +135,16 @@ class LegalLibraryDetailView(GenericAPIView):
     # def get(self, request, slug):
     #     library = get_object_or_404(LegalLibrary, slug=slug)
     #     serializer = self.get_serializer(library, context={'request': request})
-    #     return Response(serializer.data)
+    #     return Response(serializer.data)  ````
     
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Prison
+from .serializers import LocationSerializer
+
+class LocationListView(APIView):
+    def get(self, request):
+    
+        Maps = Prison.objects.all()
+        serializer = LocationSerializer(Maps, many=True)
+        return Response(serializer.data)
