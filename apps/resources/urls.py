@@ -11,5 +11,5 @@ urlpatterns = [
 
     path('legal-library/', LegalLibraryListView.as_view(), name='library-list'),
     path('legal-library/<int:pk>/', LegalLibraryDetailView.as_view(), name='library-detail'),
-    path('api-locations/', LocationListView.as_view(), name='location-list'),
+    path('locations/', LocationListView.as_view(), name='location-list'),
 ]
