@@ -137,3 +137,14 @@ class LegalLibraryDetailView(GenericAPIView):
     #     serializer = self.get_serializer(library, context={'request': request})
     #     return Response(serializer.data)  ````
     
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Prison
+from .serializers import LocationSerializer
+
+class LocationListView(APIView):
+    def get(self, request):
+    
+        Maps = Prison.objects.all()
+        serializer = LocationSerializer(Maps, many=True)
+        return Response(serializer.data)

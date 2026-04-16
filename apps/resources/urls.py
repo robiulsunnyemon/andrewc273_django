@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import LegalFormListView, LegalFormDetailView, LegalLibraryDetailView, LegalLibraryListView, PrisonListView, PrisonDetailView
+from .views import LegalFormListView, LegalFormDetailView, LegalLibraryDetailView, LegalLibraryListView, LocationListView, PrisonListView, PrisonDetailView
 
 urlpatterns = [
     
@@ -11,4 +11,5 @@ urlpatterns = [
 
     path('legal-library/', LegalLibraryListView.as_view(), name='library-list'),
     path('legal-library/<int:pk>/', LegalLibraryDetailView.as_view(), name='library-detail'),
+    path('api/locations/', LocationListView.as_view(), name='location-list'),
 ]

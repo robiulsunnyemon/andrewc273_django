@@ -12,7 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+
+
 from dotenv import load_dotenv
+import requests
 
 load_dotenv()
 
@@ -77,6 +80,7 @@ INSTALLED_APPS = [
      'ckeditor_uploader',
     "apps.resources",
     'django_filters',
+    # 'apps.social_auth',
 
 
 ]
@@ -109,7 +113,7 @@ SIMPLE_JWT = {
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # add this just after SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -293,3 +297,19 @@ CKEDITOR_CONFIGS = {
     }
 }
 OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
+
+# import datetime
+
+# # JWT settings
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=60),
+#     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=7),
+#     'ROTATE_REFRESH_TOKENS': True,
+#     'BLACKLIST_AFTER_ROTATION': True,
+# }
+
+# # Cookie settings (for your utils.py logic)
+# SESSION_COOKIE_SECURE = False  # For local host False, for live server (HTTPS) True
+# CSRF_COOKIE_SAMESITE = 'Lax'
+# ACCESS_TOKEN_COOKIE_MAX_AGE = 3600  # 1 hour
+# REFRESH_TOKEN_COOKIE_MAX_AGE = 604800  # 7 days

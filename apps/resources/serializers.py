@@ -62,6 +62,12 @@ class PrisonSerializer(serializers.ModelSerializer):
         read_only_fields = ['id','url', 'image_normal', 'image_small']   
 
 
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prison
+        fields = ['name', 'latitude', 'longitude']
+
+
 
 
 

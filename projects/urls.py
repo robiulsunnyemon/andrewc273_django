@@ -17,6 +17,7 @@ urlpatterns = [
     path('api/v1/', include('apps.contact_support.urls')),
     path('api/v1/', include('apps.cms.urls')),
     path('api/v1/', include('apps.resources.urls')),
+    
     # path('api/v1/', include('apps.prisons.urls')),
 ]
 
