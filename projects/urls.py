@@ -19,6 +19,8 @@ urlpatterns = [
     path('api/v1/', include('apps.resources.urls')),
     
     # path('api/v1/', include('apps.prisons.urls')),
+
+    path('api/v1/', include('apps.newsletter.urls')),
 ]
 
 
