@@ -7,7 +7,7 @@ from unfold.admin import ModelAdmin, TabularInline
 class LegalArgumentInline(TabularInline):
     model = LegalArgument
     extra = 1
-    fields = ('title', 'description')
+    fields = ('title', 'content')
 
 # 
 class CaseDocumentInline(TabularInline):

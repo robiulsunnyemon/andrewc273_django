@@ -331,7 +331,7 @@ class CaseMediaSubmissionListAPIView(APIView):
         serializer = CaseCardMediaSerializer(paginated_cases, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
     
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # return Response(serializer.data, status=status.HTTP_200_OK)
     
 
 class UserCaseStatsView(APIView):
