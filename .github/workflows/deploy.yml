@@ -39,25 +39,25 @@ jobs:
 
             echo "🐳 Building and starting containers..."
             # --build নিশ্চিত করবে নতুন কোড আপডেট হয়েছে
-            docker-compose up -d --build
+            docker compose up -d --build
 
             echo "⏳ Waiting for Nginx to stabilize..."
             sleep 10
 
             echo "📜 Requesting/Renewing real certificate..."
             # --keep-until-expiring দিলে মেয়াদ থাকলে রিকোয়েস্ট করবে না, ফলে রেট লিমিট খাবেন না
-            docker-compose run --rm certbot certonly --webroot --webroot-path=/var/www/certbot \
+            docker compose run --rm certbot certonly --webroot --webroot-path=/var/www/certbot \
               --noninteractive --agree-tos --no-eff-email \
               --email "${{ secrets.CERTBOT_EMAIL }}" \
               -d "admin.dojapr.com" --keep-until-expiring
 
             echo "♻️ Reloading nginx with the real certificate..."
-            docker-compose exec -T nginx nginx -s reload
+            docker compose exec -T nginx nginx -s reload
 
             echo "📦 Running migrations..."
-            docker-compose exec -T web python manage.py migrate
+            docker compose exec -T web python manage.py migrate
 
             echo "📦 Collecting static files..."
-            docker-compose exec -T web python manage.py collectstatic --noinput
+            docker compose exec -T web python manage.py collectstatic --noinput
 
             echo "🎉 Deployment completed successfully!"
