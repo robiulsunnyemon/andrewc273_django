@@ -23,6 +23,10 @@ from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmis
 from django.db.models import Q, Count
 from rest_framework.pagination import PageNumberPagination
 from .throttles import AIUsageThrottle
+from apps.users.models import Profile, SocialLink 
+
+
+
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -505,4 +509,47 @@ class AuthorProfileView(APIView):
             "profile": profile_serializer.data,
             "archive": paginator.get_paginated_response(archive_data.data).data,
             "media": paginator.get_paginated_response(media_data.data).data
+        })
+    
+
+
+
+
+
+class PublicStatsView(APIView):
+    """
+    
+    Case Documented, Verified Author, Districts Outcomes
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        # Case Documented:
+        total_cases = CaseSubmission.objects.filter(case_status='accepted').count()
+        
+        # Verified Author: mustbe 2 link
+        
+        verified_authors_count = SocialLink.objects.annotate(
+            link_filled_count=(
+                Count('facebook', filter=~Q(facebook='')) +
+                Count('x', filter=~Q(x='')) +
+                Count('instagram', filter=~Q(instagram='')) +
+                Count('youtube', filter=~Q(youtube='')) +
+                Count('truth', filter=~Q(truth=''))
+            )
+        ).filter(link_filled_count__gte=2).count()
+
+        # Districts Represented: 
+        districts_count = CaseSubmission.objects.filter(
+            case_status='accepted'
+        ).values('federal_district').distinct().count()
+
+        # Favourable Outcomes:
+        favourable_outcomes = total_cases
+
+        return Response({
+            "case_documented": f"{total_cases:,}",         
+            "verified_author": f"{verified_authors_count:,}", 
+            "districts_represented": districts_count,     
+            "favourable_outcomes": f"{favourable_outcomes:,}" 
         })
