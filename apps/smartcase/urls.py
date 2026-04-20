@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-AcceptedCaseDetailAPIView, CaseMediaSubmissionListAPIView, CaseSubmissionListCreateAPIView, CaseDetailAPIView, AIEnhanceTextView, AIAnalyzeLinkView, DownloadDocumentAPIView,UserCaseStatsView,AcceptedCaseListView
+AcceptedCaseDetailAPIView, AuthorProfileView, CaseMediaSubmissionListAPIView, CaseSubmissionListCreateAPIView, CaseDetailAPIView, AIEnhanceTextView, AIAnalyzeLinkView, DownloadDocumentAPIView,UserCaseStatsView,AcceptedCaseListView
 )
 urlpatterns = [
     path('cases/', CaseSubmissionListCreateAPIView.as_view(), name='case-list-create'),
@@ -12,5 +12,6 @@ urlpatterns = [
     path('cases/stats/', UserCaseStatsView.as_view(), name='user-case-stats'),
     path('cases/accepted/', AcceptedCaseListView.as_view(), name='accepted-case-list'),
     path('cases/accepted/<int:pk>/', AcceptedCaseDetailAPIView.as_view(), name='accepted-case-detail'),
-
+    # urls.py
+    path('author-profile/<int:user_id>/', AuthorProfileView.as_view(), name='author-profile'),
 ]

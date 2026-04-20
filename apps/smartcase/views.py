@@ -19,10 +19,13 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from apps.smartcase.permissions import IsOwnerOrReadOnly
 
 from .models import CaseSubmission, CaseDocument
-from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer
+from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer, PublicProfileSerializer
 from django.db.models import Q, Count
 from rest_framework.pagination import PageNumberPagination
 from .throttles import AIUsageThrottle
+
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 client = openai.OpenAI(api_key=settings.OPEN_AI_API_KEY)
@@ -306,6 +309,7 @@ class CaseMediaSubmissionListAPIView(APIView):
     permission_classes = [IsAuthenticated]
    
     def get(self, request):
+        
         search_query = request.query_params.get("search", "").strip()
         state_filter = request.query_params.get("state", "").strip()
         cases = CaseSubmission.objects.all().order_by('-created_at')
@@ -447,3 +451,58 @@ class AcceptedCaseDetailAPIView(APIView):
             case.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({"error": "Case not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+# class AuthorProfileView(APIView):
+#     permission_classes = [permissions.AllowAny]
+
+#     def get(self, request, user_id=None):
+#        
+#         user = get_object_or_404(User, id=user_id)
+        
+#       
+#         try:
+#             profile = user.profile
+#         except Exception:
+#             return Response({"error": "Profile not found for this user"}, status=404)
+        
+#         
+#         profile_serializer = PublicProfileSerializer(profile, context={'request': request})
+        
+#        
+#         cases = CaseSubmission.objects.filter(user=user, case_status='accepted').order_by('-created_at')
+        
+#         # Pagination
+#         paginator = PageNumberPagination()
+#         paginator.page_size = 5
+#         paginated_cases = paginator.paginate_queryset(cases, request)
+#         case_serializer = CaseSubmissionSerializer(paginated_cases, many=True, context={'request': request})
+
+#         return Response({
+#             "profile": profile_serializer.data,
+#             "archive_cases": paginator.get_paginated_response(case_serializer.data).data
+#         })
+    
+class AuthorProfileView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, user_id=None):
+        
+        user = get_object_or_404(User, id=user_id)
+        profile = user.profile
+        profile_serializer = PublicProfileSerializer(profile, context={'request': request})
+        user_cases = CaseSubmission.objects.filter(user=user, case_status='accepted').order_by('-created_at')
+        
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        
+        paginated_cases = paginator.paginate_queryset(user_cases, request)
+        
+        archive_data = CaseSubmissionSerializer(paginated_cases, many=True, context={'request': request})
+        media_data = CaseCardMediaSerializer(paginated_cases, many=True, context={'request': request})
+
+        return Response({
+            "profile": profile_serializer.data,
+            "archive": paginator.get_paginated_response(archive_data.data).data,
+            "media": paginator.get_paginated_response(media_data.data).data
+        })
