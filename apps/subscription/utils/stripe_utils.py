@@ -41,7 +41,7 @@ def create_checkout_session(user, package, billing):
         customer=customer_id,
         line_items=[{"price": price_id, "quantity": 1}],
         mode="subscription",
-        success_url="http://localhost:5173/checkout/success/",
-        cancel_url="http://localhost:5173/checkout/failed/",
+        success_url="https://dojapr.com/checkout/success/",
+        cancel_url="https://dojapr.com/checkout/failed/",
     )
     return session.url
