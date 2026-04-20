@@ -1,6 +1,55 @@
 from rest_framework import serializers
 from .models import CaseSubmission, CaseDocument, LegalArgument
 from django.db import transaction
+from apps.users.models import Profile
+
+class PublicProfileSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    social_links = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['name', 'avatar', 'status', 'social_links']
+
+    def get_status(self, obj):
+        p = obj
+        user = obj.user
+        # SocialLink connect
+        s = getattr(user, 'social_link', None)
+        
+        top_badge = "Legion"
+        if p.total_letters >= 500000 or p.total_posts >= 150:
+            top_badge = "Omega"
+        elif p.total_letters >= 250000 or p.total_posts >= 75:
+            top_badge = "Phi"
+
+        # verified link must 2 link
+        connected_count = 0
+        if s:
+            # how many link
+            links = [s.facebook, s.x, s.instagram, s.youtube, s.truth]
+            connected_count = len([link for link in links if link])
+
+        return {
+            "top_badge": top_badge,
+            "is_verified": connected_count >= 2,
+            "is_large_contributor": p.total_posts > 200,
+            "has_star": p.has_podcast_story
+        }
+
+    def get_social_links(self, obj):
+        
+        s = getattr(obj.user, 'social_link', None)
+        if s:
+            return {
+                "facebook": s.facebook,
+                "x": s.x,
+                "instagram": s.instagram,
+                "youtube": s.youtube,
+                "truth": s.truth
+            }
+        return {}
+
 class CaseDocumentSerializer(serializers.ModelSerializer):
     download_url = serializers.SerializerMethodField()
     file_size = serializers.SerializerMethodField()
@@ -237,3 +286,4 @@ class CaseCardMediaSerializer(serializers.ModelSerializer):
             "is_large_contributor": is_large_contributor,
             "has_star": has_star
         }
+
