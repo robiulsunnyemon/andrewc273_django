@@ -50,6 +50,10 @@ class CaseDocument(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
+
+    def __str__(self):
+        return f"{self.title} ({self.document_type})"
+
 class LegalArgument(models.Model):
     case = models.ForeignKey(CaseSubmission, related_name='legal_arguments', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True, null=True)

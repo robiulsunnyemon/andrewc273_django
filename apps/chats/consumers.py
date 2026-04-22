@@ -107,6 +107,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         room.last_message = content if content else "Sent a file"
         room.save(update_fields=["last_message"])
+        # print("=============================================================")
 
         return msg
 

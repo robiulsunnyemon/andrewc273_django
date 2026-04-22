@@ -186,7 +186,8 @@ WSGI_APPLICATION = 'projects.wsgi.application'
 ASGI_APPLICATION = 'projects.asgi.application'
 
 
-REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+
+REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 
 CHANNEL_LAYERS = {
@@ -197,7 +198,6 @@ CHANNEL_LAYERS = {
         },
     },
 }
-
 
 
 # Database
