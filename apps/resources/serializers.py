@@ -41,7 +41,7 @@ class PrisonSerializer(serializers.ModelSerializer):
             'region', 
             'latitude', 
             'longitude', 
-            # 'url',             
+            #  'url',             
             'time_zone', 
             'address', 
             'city',           
@@ -56,10 +56,12 @@ class PrisonSerializer(serializers.ModelSerializer):
             'has_fdc', 
             'has_sff', 
             'has_ihp', 
-            # 'image_normal', 
-            # 'image_small'
+            #  'image_normal', 
+            #  'image_small'
         ]
         read_only_fields = ['id','url', 'image_normal', 'image_small']   
+
+   
 
 
 class LocationSerializer(serializers.ModelSerializer):

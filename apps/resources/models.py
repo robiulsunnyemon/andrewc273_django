@@ -57,6 +57,11 @@ class Prison(models.Model):
     longitude = models.FloatField(null=True, blank=True)
 
     url = models.CharField(max_length=255, null=True, blank=True)
+
+
+
+
+    
     time_zone = models.CharField(max_length=10, null=True, blank=True)
 
     address = models.TextField(null=True, blank=True)
