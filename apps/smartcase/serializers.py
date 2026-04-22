@@ -56,8 +56,8 @@ class CaseDocumentSerializer(serializers.ModelSerializer):
     # is_video = serializers.SerializerMethodField()
     class Meta:
         model = CaseDocument
-        fields = ['id', 'case','title', 'file','download_url', 'file_size',  'uploaded_at']
-        read_only_fields = ['uploaded_at']
+        fields = ['id', 'case','title', 'file','download_url','document_type', 'file_size',  'uploaded_at']
+        read_only_fields = ['uploaded_at', 'file_size', 'document_type']
 
     # def get_download_url(self, obj):
     #     request = self.context.get('request')
@@ -174,7 +174,7 @@ class CaseCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet','accepted_at', 'status', 'case_status','state']
+        fields = ['id', 'case_title','user', 'author','name','avatar', 'federal_district', 'created_at', 'content_snippet','accepted_at', 'status', 'case_status','state']
 
     def get_name(self, obj):
         # User -> Profile -> Name sequence check

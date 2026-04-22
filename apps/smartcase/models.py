@@ -1,4 +1,6 @@
 
+import os
+
 from django.utils import timezone
 
 from ckeditor.fields import RichTextField
@@ -48,7 +50,19 @@ class CaseDocument(models.Model):
     case = models.ForeignKey(CaseSubmission, related_name='documents', on_delete=models.CASCADE)
     file = models.FileField(upload_to='cases/documents/')
     title = models.CharField(max_length=255, blank=True, null=True)
+    document_type = models.CharField(max_length=10, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            file_name, file_extension = os.path.splitext(self.file.name)
+            if not self.title:
+                self.title = file_name
+            self.document_type = file_extension.lower().replace('.', '')
+            
+        super(CaseDocument, self).save(*args, **kwargs)
+
+    
 
 
     def __str__(self):
