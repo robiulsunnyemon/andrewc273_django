@@ -57,10 +57,10 @@ class PrisonSerializer(serializers.ModelSerializer):
             'has_sff', 
             'has_ihp', 
             #  'image_normal', 
-            #  'image_small'
+            #   'image_small'
         ]
         read_only_fields = ['id','url', 'image_normal', 'image_small']   
-
+   
    
 
 
