@@ -96,14 +96,33 @@ class LegalArgumentSerializer(serializers.ModelSerializer):
 
 class CaseSubmissionSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
 
     documents = CaseDocumentSerializer(many=True, read_only=True)
     legal_arguments = LegalArgumentSerializer(many=True)
     class Meta:
         model = CaseSubmission
-        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'press_release', 'state', 'federal_district','case_status','status','court_type','legal_arguments','accepted_at', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
+        fields = ['id', 'user', 'case_title', 'case_number', 'author', 'name', 'avatar', 'press_release', 'state', 'federal_district','case_status','status','court_type','legal_arguments','accepted_at', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
     
         read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at', 'accepted_at']
+
+    def get_name(self, obj):
+        # User -> Profile -> Name sequence check
+        try:
+            if obj.user and hasattr(obj.user, 'profile'):
+                return obj.user.profile.name or "No Name Provided"
+        except Exception:
+            return "Unknown Author"
+        return "Unknown Author"
+    def get_avatar(self, obj):
+        # user-er profile ebong avatar ache kina check kora
+        if hasattr(obj.user, 'profile') and obj.user.profile.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.user.profile.avatar.url)
+            return obj.user.profile.avatar.url
+        return None
         # status field to show if case is pending, accepted or rejected
     def get_status(self, obj):
         user = obj.user
