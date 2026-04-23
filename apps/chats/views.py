@@ -39,14 +39,16 @@ class RoomListCreateView(APIView):
             )
 
         # Pagination
-        paginator = PageNumberPagination()
-        paginator.page_size = 2  
+        # paginator = PageNumberPagination()
+        # paginator.page_size = 2  
 
-        paginated_rooms = paginator.paginate_queryset(rooms, request)
-        serializer = RoomSerializer(paginated_rooms, many=True)
+        # paginated_rooms = paginator.paginate_queryset(rooms, request)
+        # serializer = RoomSerializer(paginated_rooms, many=True)
 
-        return paginator.get_paginated_response(serializer.data)
-
+        # return paginator.get_paginated_response(serializer.data)
+        serializer = RoomSerializer(rooms, many=True)
+        return Response(serializer.data)
+    
     def post(self, request):
         user_2_id = request.data.get("user_2")
 
@@ -77,6 +79,18 @@ class RoomListCreateView(APIView):
         room = Room.objects.create(user_1=user_1, user_2=user_2)
         serializer = RoomSerializer(room)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def delete(self, request):
+        
+        room_id = request.data.get("room_id") 
+        if not room_id:
+            return Response({"error": "room_id is required to delete."}, status=status.HTTP_400_BAD_REQUEST)
+        room = get_object_or_404(Room, id=room_id)
+        if room.user_1 == request.user or room.user_2 == request.user:
+            room.delete()
+            return Response({"message": "Room deleted successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "You do not have permission to delete this room."}, status=status.HTTP_403_FORBIDDEN)
     
 class RoomDetailView(APIView):
     permission_classes = [IsAuthenticated]
