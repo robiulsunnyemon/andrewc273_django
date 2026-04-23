@@ -11,9 +11,9 @@ class FormFileInline(admin.TabularInline):
     fields = ('file_name', 'pdf_file') # displayed fields in the inline form
 
 @admin.register(LegalForm)
-class LegalFormAdmin(admin.ModelAdmin):
+class LegalFormAdmin(ModelAdmin):
     
-    list_display = ('id', 'title', 'slug', 'last_updated')
+    list_display = ('id', 'title', 'slug','short_description', 'last_updated')
 
     prepopulated_fields = {'slug': ('title',)} 
     inlines = [FormFileInline]
@@ -26,7 +26,7 @@ class LegalFormAdmin(admin.ModelAdmin):
     # CKEditor 
     fieldsets = (
         ('Basic Information', {
-            'fields': ('title', 'slug'),
+            'fields': ('title', 'slug','short_description'),
         }),
         ('Detailed Content', {
             'description': "Use CKEditor to format the body text (Overview, Requirements, etc.)",
