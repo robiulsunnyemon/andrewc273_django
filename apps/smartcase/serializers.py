@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 from .models import CaseSubmission, CaseDocument, LegalArgument
 from django.db import transaction
@@ -100,12 +101,62 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
 
     documents = CaseDocumentSerializer(many=True, read_only=True)
-    legal_arguments = LegalArgumentSerializer(many=True)
+    # legal_arguments = LegalArgumentSerializer(many=True)
+    
+    legal_arguments = LegalArgumentSerializer(many=True, required=False)
+    
+
+
     class Meta:
         model = CaseSubmission
         fields = ['id', 'user', 'case_title', 'case_number', 'author', 'name', 'avatar', 'press_release', 'state', 'federal_district','case_status','status','court_type','legal_arguments','accepted_at', 'is_anonymous', 'press_release_enhanced', 'ai_analysis_summary', 'documents', 'created_at']
     
         read_only_fields = ['press_release_enhanced', 'ai_analysis_summary', 'created_at', 'accepted_at']
+
+    # def to_internal_value(self, data):
+    #     legal_arguments = data.get('legal_arguments')
+
+    #     if isinstance(legal_arguments, str):
+    #         if legal_arguments.strip() == "":
+    #             data['legal_arguments'] = []
+    #         else:
+    #             try:
+    #                 data['legal_arguments'] = json.loads(legal_arguments)
+    #             except ValueError:
+    #                 raise serializers.ValidationError({
+    #                 "legal_arguments": "Invalid JSON format"
+    #             })
+
+    #     return super().to_internal_value(data)
+    # def to_internal_value(self, data):
+    #     print("RAW legal_arguments:", data.get('legal_arguments'))
+
+    #     legal_arguments = data.get('legal_arguments')
+
+    #     if isinstance(legal_arguments, str):
+    #         print("STRING DETECTED:", legal_arguments)
+            
+    #         if legal_arguments.strip() == "":
+    #             data['legal_arguments'] = []
+    #         else:
+    #             import json
+    #             data['legal_arguments'] = json.loads(legal_arguments)
+
+    #     print("FINAL DATA:", data.get('legal_arguments'))
+
+    #     return super().to_internal_value(data)
+
+    def validate(self, attrs):
+        legal_arguments = self.initial_data.get('legal_arguments')
+
+        if isinstance(legal_arguments, str):
+            import json
+            legal_arguments = json.loads(legal_arguments)
+
+        attrs['legal_arguments'] = legal_arguments or []
+        return attrs
+
+    
 
     def get_name(self, obj):
         # User -> Profile -> Name sequence check
@@ -115,6 +166,7 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
         except Exception:
             return "Unknown Author"
         return "Unknown Author"
+    
     def get_avatar(self, obj):
         # user-er profile ebong avatar ache kina check kora
         if hasattr(obj.user, 'profile') and obj.user.profile.avatar:
@@ -124,6 +176,7 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
             return obj.user.profile.avatar.url
         return None
         # status field to show if case is pending, accepted or rejected
+
     def get_status(self, obj):
         user = obj.user
         if not user or not hasattr(user, 'profile'):
@@ -148,12 +201,12 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
             "has_star": has_star
         }
     
-
-
     #new add 
     def create(self, validated_data):
         
         arguments_data = validated_data.pop('legal_arguments', [])
+
+        print("DEBUG arguments_data:", arguments_data)
 
         with transaction.atomic():
             case = CaseSubmission.objects.create(**validated_data)
@@ -161,7 +214,8 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
                 LegalArgument.objects.create(case=case, **argument)
             
         return case
-        
+    
+
      # new add 
     def update(self, instance, validated_data):
         # legal arguments data ke alada kore niye asha
