@@ -354,3 +354,228 @@ OPEN_AI_API_KEY = os.getenv("OPEN_AI_API_KEY")
 # CSRF_COOKIE_SAMESITE = 'Lax'
 # ACCESS_TOKEN_COOKIE_MAX_AGE = 3600  # 1 hour
 # REFRESH_TOKEN_COOKIE_MAX_AGE = 604800  # 7 days
+
+
+
+
+
+
+
+
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
+
+UNFOLD = {
+    "SITE_TITLE": "Division of Justice in America Admin",
+    "SITE_HEADER": "D.O.J.A. Admin Panel",
+    "DARK_MODE": True,
+
+    "SIDEBAR": {
+        "show_search": False,
+        "command_search": False,
+        "show_all_applications": False,
+
+        "navigation": [
+
+            # ===== Dashboard =====
+            {
+                "title": _("Dashboard"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Home"),
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+
+            # ===== Users =====
+            {
+                "title": _("Users"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Users"),
+                        "icon": "people",
+                        "link": reverse_lazy("admin:users_user_changelist"),
+                    },
+                    {
+                        "title": _("Profiles"),
+                        "icon": "badge",
+                        "link": reverse_lazy("admin:users_profile_changelist"),
+                    },
+                ],
+            },
+
+            # ===== Chats =====
+            {
+                "title": _("Chats"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Rooms"),
+                        "icon": "forum",
+                        "link": reverse_lazy("admin:chats_room_changelist"),
+                    },
+                    {
+                        "title": _("Messages"),
+                        "icon": "message",
+                        "link": reverse_lazy("admin:chats_message_changelist"),
+                    },
+                    {
+                        "title": _("User Status"),
+                        "icon": "toggle_on",
+                        "link": reverse_lazy("admin:chats_userstatus_changelist"),
+                    },
+                ],
+            },
+
+            # ===== Smart Case =====
+            {
+                "title": _("Smart Case"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Case Submissions"),
+                        "icon": "gavel",
+                        "link": reverse_lazy("admin:smartcase_casesubmission_changelist"),
+                    },
+                    {
+                        "title": _("Case Documents"),
+                        "icon": "description",
+                        "link": reverse_lazy("admin:smartcase_casedocument_changelist"),
+                    },
+                ],
+            },
+
+            # ===== Subscription =====
+            {
+                "title": _("Subscription"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Subscriptions"),
+                        "icon": "payments",
+                        "link": reverse_lazy("admin:subscription_subscription_changelist"),
+                    },
+                ],
+            },
+
+            # ===== Contact Support =====
+            {
+                "title": _("Support"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Contact Requests"),
+                        "icon": "support_agent",
+                        "link": reverse_lazy("admin:contact_support_contactus_changelist"),
+                    },
+                ],
+            },
+
+            # ===== CMS =====
+            {
+                "title": _("CMS"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Legal Documents"),
+                        "icon": "policy",
+                        "link": reverse_lazy("admin:cms_legaldocument_changelist"),
+                    },
+                    {
+                        "title": _("FAQs"),
+                        "icon": "help",
+                        "link": reverse_lazy("admin:cms_faq_changelist"),
+                    },
+                ],
+            },
+
+            # ===== Resources =====
+            {
+                "title": _("Resources"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Legal Forms"),
+                        "icon": "folder",
+                        "link": reverse_lazy("admin:resources_legalform_changelist"),
+                    },
+                    {
+                        "title": _("Prisons"),
+                        "icon": "account_balance",
+                        "link": reverse_lazy("admin:resources_prison_changelist"),
+                    },
+                    {
+                        "title": _("Legal Library"),
+                        "icon": "menu_book",
+                        "link": reverse_lazy("admin:resources_legallibrary_changelist"),
+                    },
+                ],
+            },
+
+            # ===== Auth & Security =====
+            {
+                "title": _("Security"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Groups"),
+                        "icon": "group",
+                        "link": reverse_lazy("admin:auth_group_changelist"),
+                    },
+                    {
+                        "title": _("Outstanding Tokens"),
+                        "icon": "vpn_key",
+                        "link": reverse_lazy("admin:token_blacklist_outstandingtoken_changelist"),
+                    },
+                    {
+                        "title": _("Blacklisted Tokens"),
+                        "icon": "block",
+                        "link": reverse_lazy("admin:token_blacklist_blacklistedtoken_changelist"),
+                    },
+                ],
+            },
+
+            # ===== Django Core =====
+            {
+                "title": _("Django"),
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Sites"),
+                        "icon": "language",
+                        "link": reverse_lazy("admin:sites_site_changelist"),
+                    },
+                    {
+                        "title": _("Email Addresses"),
+                        "icon": "email",
+                        "link": reverse_lazy("admin:account_emailaddress_changelist"),
+                    },
+                    {
+                        "title": _("Social Apps"),
+                        "icon": "apps",
+                        "link": reverse_lazy("admin:socialaccount_socialapp_changelist"),
+                    },
+                    {
+                        "title": _("Social Tokens"),
+                        "icon": "token",
+                        "link": reverse_lazy("admin:socialaccount_socialtoken_changelist"),
+                    },
+                    {
+                        "title": _("Social Accounts"),
+                        "icon": "account_circle",
+                        "link": reverse_lazy("admin:socialaccount_socialaccount_changelist"),
+                    },
+                    {
+                        "title": _("Auth Tokens"),
+                        "icon": "key",
+                        "link": reverse_lazy("admin:authtoken_tokenproxy_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
+}
