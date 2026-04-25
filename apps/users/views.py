@@ -283,7 +283,7 @@ class SocialLinkAPIView(BaseAPIView):
 
 
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
-#import imghdr
+import imghdr
 from urllib.parse import urlparse
 import requests
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
@@ -383,8 +383,10 @@ class GoogleLoginView(SocialLoginView):
                 {
                     "success": True,
                     "message": "Google login successful.",
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
+                    "tokens": {
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token),
+                    },
                     "user": {
                         "id": user.id,
                         "email": user.email,
