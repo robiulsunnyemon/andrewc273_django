@@ -166,6 +166,7 @@ class SocialLinkSerializer(serializers.ModelSerializer):
         fields = ["facebook", "x", "instagram", "youtube", "truth"]
 
 class ProfileSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source="user.id", read_only=True)
     email = serializers.EmailField(source="user.email", read_only=True)
     subscription = serializers.SerializerMethodField()
     social_link = SocialLinkSerializer(source="user.social_link", read_only=True)
