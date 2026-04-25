@@ -361,7 +361,7 @@ class CaseDetailAPIView(APIView):
 #casse media submission list view (for admin dashboard)
     
 class CaseMediaSubmissionListAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
    
     def get(self, request):
         
