@@ -367,7 +367,9 @@ class CaseMediaSubmissionListAPIView(APIView):
         
         search_query = request.query_params.get("search", "").strip()
         state_filter = request.query_params.get("state", "").strip()
-        cases = CaseSubmission.objects.all().order_by('-created_at')
+        #cases = CaseSubmission.objects.all().order_by('-created_at')
+        cases = CaseSubmission.objects.filter(case_status="accepted").order_by('-created_at')
+        # cases = CaseSubmission.objects.filter(case_status="accepted",documents__document_type__iexact="mp4").distinct().order_by('-created_at')
 
         if state_filter:
             cases = cases.filter(state__iexact=state_filter)
