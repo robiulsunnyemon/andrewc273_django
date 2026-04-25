@@ -18,7 +18,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 # from apps.smartcase import permissions
 from apps.smartcase.permissions import IsOwnerOrReadOnly
 
-from .models import CaseSubmission, CaseDocument
+from .models import CaseSubmission, CaseDocument, LegalArgument
 from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer, PublicProfileSerializer
 from django.db.models import Q, Count
 from rest_framework.pagination import PageNumberPagination
@@ -221,6 +221,57 @@ class CaseSubmissionListCreateAPIView(APIView):
             # return Response(CaseSubmissionSerializer(case_instance).data, status=201)
             return Response(CaseSubmissionSerializer(case_instance, context={'request': request}).data, status=201)
         return Response(serializer.errors, status=400)
+    
+
+    
+    # def post(self, request):
+    #     # 1. Serializer initialize kora
+    #     serializer = CaseSubmissionSerializer(data=request.data, context={'request': request})
+        
+    #     if serializer.is_valid():
+    #         # 2. Case create kora (user assign shoho)
+    #         case_instance = serializer.save(user=request.user)
+
+    #         # 3. File upload handle kora (Multiple files)
+    #         files = request.FILES.getlist('files') 
+    #         for f in files:
+    #             CaseDocument.objects.create(case=case_instance, file=f)
+            
+    #         # 4. Legal Arguments handle kora (Jodi user pathay)
+    #         # Frontend theke 'arguments' namer key-te data thakte hobe
+    #         arguments_data = request.data.get('arguments')
+    #         if arguments_data:
+    #             import json
+    #             try:
+    #                 # Form-data-te thakle json loads lagte pare
+    #                 if isinstance(arguments_data, str):
+    #                     arguments_data = json.loads(arguments_data)
+                    
+    #                 for arg in arguments_data:
+    #                     LegalArgument.objects.create(
+    #                         case=case_instance,
+    #                         title=arg.get('title'),
+    #                         content=arg.get('content')
+    #                     )
+    #             except Exception as e:
+    #                 print(f"Error parsing arguments: {e}")
+
+    #         # 5. Press Release Enhanced & AI Summary manually update
+    #         # User press_release pathale ota enhanced field-e save hobe
+    #         case_instance.press_release_enhanced = request.data.get('press_release', case_instance.press_release)
+            
+    #         # AI summary field-tio update kora holo (jodi pathay)
+    #         case_instance.ai_analysis_summary = request.data.get('ai_analysis_summary', '')
+            
+    #         case_instance.save()
+            
+    #         # 6. Response return
+    #         return Response(
+    #             CaseSubmissionSerializer(case_instance, context={'request': request}).data, 
+    #             status=status.HTTP_201_CREATED
+    #         )
+            
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CaseDetailAPIView(APIView):
@@ -365,6 +416,13 @@ class AcceptedCaseListView(APIView):
         
         search_query = request.query_params.get("search", "").strip()
         state_filter = request.query_params.get("state", "").strip()
+
+        court_filter = request.query_params.get("court_type", "").strip()
+        district_filter = request.query_params.get("federal_district", "").strip()
+        verified_filter = request.query_params.get("is_verified", "").strip()
+        start_date = request.query_params.get("start_date", "").strip()
+        end_date = request.query_params.get("end_date", "").strip()
+        ordering = request.query_params.get("ordering", "-created_at")
         
         cases = CaseSubmission.objects.filter(
             
@@ -373,6 +431,17 @@ class AcceptedCaseListView(APIView):
 
         if state_filter:
             cases = cases.filter(state__iexact=state_filter)
+        
+        if court_filter:
+            cases = cases.filter(court_type__iexact=court_filter)
+
+        if district_filter:
+            cases = cases.filter(federal_district__iexact=district_filter)
+
+
+        # Date range filter
+        if start_date and end_date:
+            cases = cases.filter(filed_date__range=[start_date, end_date])
 
         
         if search_query:
@@ -381,6 +450,8 @@ class AcceptedCaseListView(APIView):
             Q(case_number__icontains=search_query) | 
             Q(state__icontains=search_query) |
             Q(documents__title__icontains=search_query) |
+            Q(author__icontains=search_query) |
+            Q(court_type__icontains=search_query) |
             Q(documents__file__icontains=search_query)
         ).distinct() 
         paginator = PageNumberPagination()
