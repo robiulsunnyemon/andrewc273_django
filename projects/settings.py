@@ -488,7 +488,7 @@ UNFOLD = {
                 "collapsible": True,
                 "items": [
                     {
-                        "title": _("Legal Documents"),
+                        "title": _("Terms and Privacy"),
                         "icon": "policy",
                         "link": reverse_lazy("admin:cms_legaldocument_changelist"),
                     },
