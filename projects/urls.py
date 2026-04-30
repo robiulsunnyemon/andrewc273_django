@@ -9,6 +9,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
 
+    path('accounts/', include('allauth.urls')),
+
     # add by sakhawat
     path('api/v1/', include('apps.users.urls')),
     path('api/v1/', include('apps.subscription.urls')),
