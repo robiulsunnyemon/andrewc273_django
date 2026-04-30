@@ -6,14 +6,16 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .models import LegalForm,LegalLibrary, Prison
-from .serializers import LegalFormListSerializer, LegalFormDetailSerializer, LegalLibraryListSerializer, LegalLibrarySerializer, PrisonSerializer
+from .models import LegalForm,LegalLibrary, Prison,Review,CategoryRating
+
+from .serializers import LegalFormListSerializer, LegalFormDetailSerializer,ReviewSerializer,CategorySerializer,LegalLibraryListSerializer, LegalLibrarySerializer, PrisonSerializer
 from rest_framework import status
 from rest_framework import filters
 from rest_framework.generics import GenericAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 from .utils import PrisonPagination
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
 
 
 class LegalFormListView(APIView):
@@ -236,3 +238,44 @@ class LocationListView(APIView):
         Maps = Prison.objects.all()
         serializer = LocationSerializer(Maps, many=True)
         return Response(serializer.data)
+    
+
+from django.db.models import Avg
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+class PrisonRetingDetailView(APIView):
+    def get(self, request, pk):
+        prison = Prison.objects.get(pk=pk)
+
+        reviews = Review.objects.filter(prison=prison)
+        review_data = ReviewSerializer(reviews, many=True).data
+
+        avg_rating = reviews.aggregate(avg=Avg('rating'))['avg']
+
+        category_avg = CategoryRating.objects.filter(review__prison=prison) \
+            .values('category') \
+            .annotate(avg=Avg('score'))
+
+        return Response({
+            "prison": {
+                "id": prison.id,
+                "name": prison.name,
+                "location": prison.address,
+                "latitude": prison.latitude,
+                "longitude": prison.longitude
+            },
+            "average_rating": avg_rating,
+            "category_breakdown": list(category_avg),
+            "reviews": review_data
+        })
+
+
+class CreateReviewView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

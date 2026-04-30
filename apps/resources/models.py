@@ -5,6 +5,9 @@ import os
 from django.db import models
 from ckeditor_uploader.fields import RichTextUploadingField
 from ckeditor.fields import RichTextField
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class LegalForm(models.Model):
     title = models.CharField(max_length=255) 
@@ -86,3 +89,34 @@ class Prison(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.code})"
+
+
+
+
+class Review(models.Model):
+    prison = models.ForeignKey(Prison, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    comment = models.TextField()
+    rating = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class CategoryRating(models.Model):
+    REVIEW_CATEGORIES = [
+        ('staff', 'Staff'),
+        ('library', 'Library'),
+        ('food', 'Food Services'),
+        ('freedom', 'Freedom / Left Alone'),
+        ('safety', 'Safety'),
+        ('equipment', 'Recreational Equipment'),
+        ('unicor', 'Unicor'),
+        ('commissary', 'Commissary'),
+        ('wait','program wait time'),
+        ('cleanliness', 'Cleanliness'),
+        ('visitation', 'Visitation'),
+        ('programs', 'Inmate Self Programs'),
+        ('time', 'Overall Place to Do Time'),
+    ]
+
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='category_ratings',null=True, blank=True)
+    category = models.CharField(max_length=50, choices=REVIEW_CATEGORIES, null=True, blank=True)
+    score = models.FloatField(default=0.0)
