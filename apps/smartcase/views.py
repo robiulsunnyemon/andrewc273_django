@@ -583,7 +583,7 @@ class AuthorProfileView(APIView):
             "archive": paginator.get_paginated_response(archive_data.data).data,
             "media": paginator.get_paginated_response(media_data.data).data
         })
-    
+  
 
 
 

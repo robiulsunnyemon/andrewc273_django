@@ -12,3 +12,5 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         # Write permission shudhu owner-er jonno (Update/Delete)
         return obj.user == request.user
+    
+

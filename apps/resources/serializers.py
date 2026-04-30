@@ -1,5 +1,8 @@
 from rest_framework import serializers
-from .models import LegalForm, FormFile,Prison,LegalLibrary
+
+from .models import CategoryRating, LegalForm, FormFile,Prison,LegalLibrary,Review
+
+from apps.smartcase.serializers import PublicProfileSerializer
 
 class FormFileSerializer(serializers.ModelSerializer):
     size = serializers.ReadOnlyField(source='file_size')
@@ -132,3 +135,58 @@ class LegalLibraryListSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.uploade_file.url)
             return obj.uploade_file.url
         return None
+    
+
+from rest_framework import serializers
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CategoryRating
+        fields = ['category', 'score']
+
+
+# class UserSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = User
+#         fields = ['id', 'first_name', 'last_name']
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user = PublicProfileSerializer(source='user.profile', read_only=True)
+    # এখানে source='category_ratings' দেওয়ার কারণে validated_data-তে এই নামেই ডাটা থাকবে
+    categories = CategorySerializer(many=True, source='category_ratings')
+
+    class Meta:
+        model = Review
+        fields = ['id', 'user', 'prison', 'comment', 'rating', 'created_at', 'categories']
+
+    def create(self, validated_data):
+        # 'categories' এর বদলে 'category_ratings' পপ করুন
+        categories_data = validated_data.pop('category_ratings', []) 
+        
+        # রিভিউ তৈরি করুন
+        review = Review.objects.create(**validated_data)
+
+        # ক্যাটাগরি রেটিংগুলো সেভ করুন
+        for cat in categories_data:
+            CategoryRating.objects.create(review=review, **cat)
+
+        return review
+    
+# class ReviewSerializer(serializers.ModelSerializer):
+#     # user = PublicProfileSerializer(read_only=True)
+#     user = PublicProfileSerializer(source='user.profile', read_only=True)
+#     categories = CategorySerializer(many=True, source='category_ratings')
+#     # categories = CategorySerializer(many=True)
+
+#     class Meta:
+#         model = Review
+#         fields = ['id', 'user','prison', 'comment', 'rating', 'created_at', 'categories']
+
+#     def create(self, validated_data):
+#         categories_data = validated_data.pop('categories')
+#         review = Review.objects.create(**validated_data)
+
+#         for cat in categories_data:
+#             CategoryRating.objects.create(review=review, **cat)
+
+#         return review
