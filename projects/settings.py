@@ -453,6 +453,16 @@ UNFOLD = {
                         "icon": "description",
                         "link": reverse_lazy("admin:smartcase_casedocument_changelist"),
                     },
+                    {
+                        "title": _("Story"),
+                        "icon": "description",
+                        "link": reverse_lazy("admin:smartcase_story_changelist"),
+                    },
+                    {
+                        "title": _("Podcast Stories"),
+                        "icon": "description",
+                        "link": reverse_lazy("admin:smartcase_podcaststory_changelist"),
+                    },
                 ],
             },
 

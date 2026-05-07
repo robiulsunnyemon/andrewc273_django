@@ -152,7 +152,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     user = PublicProfileSerializer(source='user.profile', read_only=True)
-    # এখানে source='category_ratings' দেওয়ার কারণে validated_data-তে এই নামেই ডাটা থাকবে
+    # 
     categories = CategorySerializer(many=True, source='category_ratings')
 
     class Meta:
@@ -160,13 +160,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'prison', 'comment', 'rating', 'created_at', 'categories']
 
     def create(self, validated_data):
-        # 'categories' এর বদলে 'category_ratings' পপ করুন
+       
         categories_data = validated_data.pop('category_ratings', []) 
         
-        # রিভিউ তৈরি করুন
+      
         review = Review.objects.create(**validated_data)
 
-        # ক্যাটাগরি রেটিংগুলো সেভ করুন
+        
         for cat in categories_data:
             CategoryRating.objects.create(review=review, **cat)
 

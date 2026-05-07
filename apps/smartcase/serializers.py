@@ -1,6 +1,7 @@
 import json
+from pydantic import ValidationError
 from rest_framework import serializers
-from .models import CaseSubmission, CaseDocument, LegalArgument
+from .models import CaseSubmission, CaseDocument, LegalArgument, PodcastStory,Story, StoryFile
 from django.db import transaction
 from apps.users.models import Profile
 
@@ -303,6 +304,7 @@ class CaseCardMediaSerializer(serializers.ModelSerializer):
     # content_snippet = serializers.SerializerMethodField()
     #name = serializers.CharField(source='profile.name', read_only=True)
     documents = CaseDocumentSerializer(many=True, read_only=True)
+    # documents = serializers.SerializerMethodField()
     # download_url = serializers.SerializerMethodField()
     # file_size = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
@@ -312,6 +314,7 @@ class CaseCardMediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseSubmission
         fields = ['id', 'case_title', 'author','name','avatar', 'federal_district', 'created_at', 'status','accepted_at', 'documents', 'case_status']
+    
 
 
     def get_name(self, obj):
@@ -360,3 +363,123 @@ class CaseCardMediaSerializer(serializers.ModelSerializer):
             "has_star": has_star
         }
 
+
+
+
+
+
+class StoryFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoryFile
+        fields = ['id', 'file', 'uploaded_at']
+
+class StorySerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
+    files = StoryFileSerializer(many=True, read_only=True)
+    uploaded_files = serializers.ListField(child=serializers.FileField(),write_only=True,required=False)
+
+    class Meta:
+        model = Story
+        fields = [
+            'id', 'user', 'title', 'name', 'avatar', 'status', 'is_featured','files', 'uploaded_files', 'created_at'
+        ]
+        
+        read_only_fields = ['is_featured', 'created_at']
+
+    def get_name(self, obj):
+        # User -> Profile -> Name sequence check
+        try:
+            if obj.user and hasattr(obj.user, 'profile'):
+                return obj.user.profile.name or "No Name Provided"
+        except Exception:
+            return "Unknown Author"
+        return "Unknown Author"
+    
+    def get_avatar(self, obj):
+        # user-er profile ebong avatar ache kina check kora
+        if hasattr(obj.user, 'profile') and obj.user.profile.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.user.profile.avatar.url)
+            return obj.user.profile.avatar.url
+        return None
+        # status field to show if case is pending, accepted or rejected
+
+    def get_status(self, obj):
+        user = obj.user
+        if not user or not hasattr(user, 'profile'):
+            return None
+        p = user.profile
+        s = getattr(user, 'social_link', None)
+        top_badge = "Legion"
+        if p.total_letters >= 500000 or p.total_posts >= 150:
+            top_badge = "Omega"
+        elif p.total_letters >= 250000 or p.total_posts >= 75:
+            top_badge = "Phi"
+        # elif p.total_letters >= 50 or p.total_posts >= 2:
+        #     top_badge = "Sigma"
+
+        is_verified = s.connected_count >= 2 if s else False
+        is_large_contributor = p.total_posts > 200
+        # has_star = p.has_podcast_story
+        return {
+            "top_badge": top_badge,
+            "is_verified": is_verified,
+            "is_large_contributor": is_large_contributor,
+            # "has_star": has_star
+        }
+
+    def validate_uploaded_files(self, value):
+        """
+       validate_uploaded_files method ta StorySerializer er moddhe add kora hoyeche, jeta uploaded_files field er jonno custom validation provide kore. Ei method ta ensure kore je user video file upload korte parbe na, karon video file gulo accept kora hobe na.
+        """
+        forbidden_video_extensions = [
+            '.mp4', '.mkv', '.wmv', '.3gp', '.avi', '.mov', '.flv', '.webm'
+        ]
+        
+        for file in value:
+            file_name = file.name.lower()
+            
+           
+            if any(file_name.endswith(ext) for ext in forbidden_video_extensions):
+                raise ValidationError(f"Can not upload video files: {file.name}")
+            
+           
+           
+            content_type = getattr(file, 'content_type', None)
+            if content_type and content_type.startswith('video/'):
+                raise ValidationError(f"Can not upload video files: {file.name}")
+                
+        return value
+    
+
+    # def create(self, validated_data):
+        
+    #     files_data = validated_data.pop('uploaded_files', [])
+       
+    #     story = Story.objects.create(**validated_data)
+        
+    #     for file_data in files_data:
+    #         StoryFile.objects.create(story=story, file=file_data)
+            
+    #     return story
+    
+    def create(self, validated_data):
+        files_data = validated_data.pop('uploaded_files', [])
+
+        story = Story.objects.create(**validated_data)
+
+        for file_data in files_data:
+            StoryFile.objects.create(
+            story=story,
+            file=file_data
+        )
+        return story
+    
+class PodcastStorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PodcastStory
+        fields = ['id', 'title', 'files', 'created_at']

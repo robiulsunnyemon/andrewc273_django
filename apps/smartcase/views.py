@@ -18,8 +18,8 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 # from apps.smartcase import permissions
 from apps.smartcase.permissions import IsOwnerOrReadOnly
 
-from .models import CaseSubmission, CaseDocument, LegalArgument
-from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer, PublicProfileSerializer
+from .models import CaseSubmission, CaseDocument, LegalArgument, Story, PodcastStory
+from .serializers import CaseCardMediaSerializer, CaseCardSerializer, CaseSubmissionSerializer, CaseDocumentSerializer, PodcastStorySerializer, PublicProfileSerializer, StorySerializer
 from django.db.models import Q, Count
 from rest_framework.pagination import PageNumberPagination
 from .throttles import AIUsageThrottle
@@ -364,13 +364,14 @@ class CaseMediaSubmissionListAPIView(APIView):
     permission_classes = [AllowAny]
    
     def get(self, request):
-        
+        media_type = request.query_params.get("media_type", "all").strip() # mp4 or others
         search_query = request.query_params.get("search", "").strip()
         state_filter = request.query_params.get("state", "").strip()
-        #cases = CaseSubmission.objects.all().order_by('-created_at')
-        cases = CaseSubmission.objects.filter(case_status="accepted").order_by('-created_at')
+        cases = CaseSubmission.objects.all().order_by('-created_at')
+        # cases = CaseSubmission.objects.filter(case_status="accepted").order_by('-created_at')
         # cases = CaseSubmission.objects.filter(case_status="accepted",documents__document_type__iexact="mp4").distinct().order_by('-created_at')
-
+        
+            
         if state_filter:
             cases = cases.filter(state__iexact=state_filter)
 
@@ -401,10 +402,10 @@ class UserCaseStatsView(APIView):
     def get(self, request):
         stats = CaseSubmission.objects.filter(user=request.user).aggregate(
             total=Count('id',distinct=True),
-            total_podcast=Count('documents', distinct=True),
-            pending=Count('id', filter=Q(case_status='pending'),distinct=True),
-            accepted=Count('id', filter=Q(case_status='accepted'),distinct=True),
-            rejected=Count('id', filter=Q(case_status='rejected'),distinct=True)
+            # total_podcast=Count('documents', distinct=True),
+            # pending=Count('id', filter=Q(case_status='pending'),distinct=True),
+            # accepted=Count('id', filter=Q(case_status='accepted'),distinct=True),
+            # rejected=Count('id', filter=Q(case_status='rejected'),distinct=True)
         )
         return Response({"case_stats": "success", "data": stats})
     
@@ -426,10 +427,12 @@ class AcceptedCaseListView(APIView):
         end_date = request.query_params.get("end_date", "").strip()
         ordering = request.query_params.get("ordering", "-created_at")
         
-        cases = CaseSubmission.objects.filter(
+        # cases = CaseSubmission.objects.filter(
             
-            case_status='accepted'
-        ).order_by('-created_at')
+        #     case_status='accepted'
+        # ).order_by('-created_at')
+        cases = CaseSubmission.objects.all().order_by('-created_at')
+
 
         if state_filter:
             cases = cases.filter(state__iexact=state_filter)
@@ -626,3 +629,41 @@ class PublicStatsView(APIView):
             "districts_represented": districts_count,     
             "favourable_outcomes": f"{favourable_outcomes:,}" 
         })
+    
+
+from rest_framework.parsers import MultiPartParser, FormParser
+class StoryView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    
+
+    def get(self, request):
+        queryset = Story.objects.all().order_by('-created_at')
+        
+        featured = request.query_params.get('featured')
+        if featured == 'true':
+            queryset = queryset.filter(is_featured=True)
+            
+        serializer = StorySerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = StorySerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response({
+                "message": "Story submitted successfully!",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class PodcastStoryView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+
+    def get(self, request):
+        queryset = PodcastStory.objects.all().order_by('-created_at')
+        serializer = PodcastStorySerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
