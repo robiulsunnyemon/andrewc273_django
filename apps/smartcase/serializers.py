@@ -386,7 +386,7 @@ class StorySerializer(serializers.ModelSerializer):
             'id', 'user', 'title', 'name', 'avatar', 'status', 'is_featured','files', 'uploaded_files', 'created_at'
         ]
         
-        read_only_fields = ['is_featured', 'created_at']
+        read_only_fields = ['is_featured','user', 'created_at']
 
     def get_name(self, obj):
         # User -> Profile -> Name sequence check
