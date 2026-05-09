@@ -667,6 +667,17 @@ class StoryView(APIView):
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+class StoryDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        
+        story = get_object_or_404(Story, pk=pk)
+        serializer = StorySerializer(story, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
 class PodcastStoryView(APIView):
     permission_classes = [IsAuthenticated]
     

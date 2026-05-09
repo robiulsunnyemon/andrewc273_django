@@ -369,9 +369,17 @@ class CaseCardMediaSerializer(serializers.ModelSerializer):
 
 
 class StoryFileSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
     class Meta:
         model = StoryFile
-        fields = ['id', 'file', 'uploaded_at']
+        fields = ['id', 'file','file_url', 'uploaded_at']
+
+
+    def get_file_url(self, obj):
+        request = self.context.get('request')
+        if obj.file and request:
+            return request.build_absolute_uri(obj.file.url)
+        return None
 
 class StorySerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
