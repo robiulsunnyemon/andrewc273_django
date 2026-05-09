@@ -24,6 +24,7 @@ from django.db.models import Q, Count
 from rest_framework.pagination import PageNumberPagination
 from .throttles import AIUsageThrottle
 from apps.users.models import Profile, SocialLink 
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 
@@ -631,7 +632,7 @@ class PublicStatsView(APIView):
         })
     
 
-from rest_framework.parsers import MultiPartParser, FormParser
+
 class StoryView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -640,11 +641,19 @@ class StoryView(APIView):
     def get(self, request):
         queryset = Story.objects.all().order_by('-created_at')
         
+        search_query = request.query_params.get('search', None)
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query)
+            )
+        
         featured = request.query_params.get('featured')
+
         if featured == 'true':
             queryset = queryset.filter(is_featured=True)
             
-        serializer = StorySerializer(queryset, many=True)
+        serializer = StorySerializer(queryset, many=True,context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request):
@@ -661,9 +670,15 @@ class StoryView(APIView):
 class PodcastStoryView(APIView):
     permission_classes = [IsAuthenticated]
     
-
     def get(self, request):
         queryset = PodcastStory.objects.all().order_by('-created_at')
+
+        search_query = request.query_params.get('search', None)
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query)
+            )
         serializer = PodcastStorySerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
