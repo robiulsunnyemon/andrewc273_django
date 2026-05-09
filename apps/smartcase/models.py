@@ -5,6 +5,8 @@ from django.utils import timezone
 
 from ckeditor.fields import RichTextField
 from django.db import models
+
+from django.contrib.auth import get_user_model
 # Create your models here.
 
 class CaseSubmission(models.Model):
@@ -56,11 +58,14 @@ class CaseDocument(models.Model):
     def save(self, *args, **kwargs):
         if self.file:
             file_name, file_extension = os.path.splitext(self.file.name)
+            
             if not self.title:
                 self.title = file_name
             self.document_type = file_extension.lower().replace('.', '')
             
         super(CaseDocument, self).save(*args, **kwargs)
+
+    
 
     
 
@@ -75,4 +80,51 @@ class LegalArgument(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.case.case_title}"
+    
+
+User = get_user_model()
+
+class Story(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stories')
+    title = models.CharField(max_length=255)
+    # author_name = models.CharField(max_length=255, blank=True, null=True)
+    # description = models.TextField(blank=True, null=True)
+    # Featured & Star System
+    is_featured = models.BooleanField(default=False, verbose_name="Star/Featured")
+   
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Stories"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+class StoryFile(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='files')
+    file = models.FileField(upload_to='story_documents/%Y/%m/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"File for: {self.story.title}"
+    
+class PodcastStory(models.Model):
+   
+    title = models.CharField(max_length=255)
+    files= models.FileField(upload_to='podcast_stories/%Y/%m/')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+   
+
+    class Meta:
+        verbose_name_plural = "Podcast Stories"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+
 
