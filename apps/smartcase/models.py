@@ -105,7 +105,30 @@ class Story(models.Model):
 class StoryFile(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name='files')
     file = models.FileField(upload_to='story_documents/%Y/%m/')
+    story_file_type = models.CharField(max_length=10, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+
+
+    # def save(self, *args, **kwargs):
+    #     if self.file:
+    #         file_name, file_extension = os.path.splitext(self.file.name)
+            
+    #         if not self.title:
+    #             self.title = file_name
+    #         self.story_file_type = file_extension.lower().replace('.', '')
+            
+    #     super(StoryFile, self).save(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            
+            _, file_extension = os.path.splitext(self.file.name)
+            
+            if not self.story_file_type:
+                self.story_file_type = file_extension.lower().replace('.', '')
+            
+        super(StoryFile, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"File for: {self.story.title}"

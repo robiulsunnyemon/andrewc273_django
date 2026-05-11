@@ -18,8 +18,10 @@ class PrisonPagination(PageNumberPagination):
             'page_size': self.get_page_size(self.request),        
             'total_pages': total_pages,  
             'has_next': self.page.has_next(),          
-            'has_previous': self.page.has_previous(),       
+            'has_previous': self.page.has_previous(), 
+                  
             # 'next': self.get_next_link(),
             # 'previous': self.get_previous_link(),
+
             'results': data
         })
