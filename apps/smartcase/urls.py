@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-AcceptedCaseDetailAPIView, AuthorProfileView, CaseMediaSubmissionListAPIView, PodcastStoryView, StoryDetailView, StoryView,CaseSubmissionListCreateAPIView, CaseDetailAPIView, AIEnhanceTextView, AIAnalyzeLinkView, DownloadDocumentAPIView,UserCaseStatsView,AcceptedCaseListView,PublicStatsView
+AcceptedCaseDetailAPIView, AuthorProfileView, CaseMediaSubmissionListAPIView, PodcastStoryDetailView, PodcastStoryView, StoryDetailView, StoryView,CaseSubmissionListCreateAPIView, CaseDetailAPIView, AIEnhanceTextView, AIAnalyzeLinkView, DownloadDocumentAPIView,UserCaseStatsView,AcceptedCaseListView,PublicStatsView
 )
 urlpatterns = [
     path('cases/', CaseSubmissionListCreateAPIView.as_view(), name='case-list-create'),
@@ -18,5 +18,6 @@ urlpatterns = [
     path('stories/', StoryView.as_view(), name='stories'),
     path('stories/<int:pk>/', StoryDetailView.as_view(), name='story-detail'),
     path('podcast-stories/', PodcastStoryView.as_view(), name='podcast-stories'),
+    path('podcast/<int:id>/', PodcastStoryDetailView.as_view(), name='podcast-detail'),
 
 ]
