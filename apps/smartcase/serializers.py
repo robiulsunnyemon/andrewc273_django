@@ -392,7 +392,7 @@ class StoryFileSerializer(serializers.ModelSerializer):
             elif size < 1048576: return f"{round(size / 1024, 1)} KB"
             else: return f"{round(size / 1048576, 1)} MB"
         except: return "Unknown Size"
-        
+
 
 class StorySerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
@@ -500,7 +500,19 @@ class StorySerializer(serializers.ModelSerializer):
         return story
     
 class PodcastStorySerializer(serializers.ModelSerializer):
+   
+    file_download_url = serializers.SerializerMethodField()
 
     class Meta:
         model = PodcastStory
-        fields = ['id', 'title', 'files', 'created_at']
+        
+        fields = ['id', 'title', 'files', 'created_at', 'file_download_url']
+
+    def get_file_download_url(self, obj):
+        request = self.context.get('request')
+        if obj.files:
+            
+            if request:
+                return request.build_absolute_uri(obj.files.url)
+            return obj.files.url
+        return None

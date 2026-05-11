@@ -717,3 +717,14 @@ class PodcastStoryView(APIView):
         # serializer = PodcastStorySerializer(queryset, many=True)
         # return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+class PodcastStoryDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        
+        podcast_story = get_object_or_404(PodcastStory, id=id)
+        
+        serializer = PodcastStorySerializer(podcast_story, context={'request': request})
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
