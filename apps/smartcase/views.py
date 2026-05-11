@@ -16,6 +16,7 @@ from rest_framework.permissions import  AllowAny
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 # from apps.smartcase import permissions
+from apps.resources.utils import PrisonPagination
 from apps.smartcase.permissions import IsOwnerOrReadOnly
 
 from .models import CaseSubmission, CaseDocument, LegalArgument, Story, PodcastStory
@@ -639,6 +640,7 @@ class StoryView(APIView):
     
 
     def get(self, request):
+
         queryset = Story.objects.all().order_by('-created_at')
         
         search_query = request.query_params.get('search', None)
@@ -652,9 +654,21 @@ class StoryView(APIView):
 
         if featured == 'true':
             queryset = queryset.filter(is_featured=True)
+
+        paginator = PrisonPagination()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        
+
+        serializer = StorySerializer(
+            paginated_queryset,
+            many=True,
+            context={'request': request}
+        )
             
-        serializer = StorySerializer(queryset, many=True,context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # serializer = StorySerializer(queryset, many=True,context={'request': request})
+        # return Response(serializer.data, status=status.HTTP_200_OK)
+        return paginator.get_paginated_response(serializer.data)
+
     
     def post(self, request):
         serializer = StorySerializer(data=request.data, context={'request': request})
@@ -690,6 +704,16 @@ class PodcastStoryView(APIView):
             queryset = queryset.filter(
                 Q(title__icontains=search_query)
             )
-        serializer = PodcastStorySerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        paginator = PrisonPagination()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+
+        serializer = PodcastStorySerializer(
+            paginated_queryset,
+            many=True
+        )
+
+        return paginator.get_paginated_response(serializer.data)
+        # serializer = PodcastStorySerializer(queryset, many=True)
+        # return Response(serializer.data, status=status.HTTP_200_OK)
 
