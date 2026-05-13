@@ -506,7 +506,7 @@ class PodcastStorySerializer(serializers.ModelSerializer):
     class Meta:
         model = PodcastStory
         
-        fields = ['id', 'title', 'files', 'created_at', 'file_download_url']
+        fields = ['id', 'title', 'files','descriptions', 'created_at', 'file_download_url']
 
     def get_file_download_url(self, obj):
         request = self.context.get('request')
