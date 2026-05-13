@@ -404,7 +404,7 @@ class StorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Story
         fields = [
-            'id', 'user', 'title', 'name', 'avatar', 'status', 'is_featured','files', 'uploaded_files', 'created_at'
+            'id', 'user', 'title','description', 'name', 'avatar', 'status', 'is_featured','files', 'uploaded_files', 'created_at'
         ]
         
         read_only_fields = ['is_featured','user', 'created_at']

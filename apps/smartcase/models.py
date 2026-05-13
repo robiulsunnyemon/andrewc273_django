@@ -87,6 +87,7 @@ User = get_user_model()
 class Story(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='stories')
     title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
     # author_name = models.CharField(max_length=255, blank=True, null=True)
     # description = models.TextField(blank=True, null=True)
     # Featured & Star System
