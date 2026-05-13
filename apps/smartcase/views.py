@@ -635,7 +635,7 @@ class PublicStatsView(APIView):
 
 
 class StoryView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsOwnerOrReadOnly]
     parser_classes = [MultiPartParser, FormParser]
     
 
@@ -683,7 +683,7 @@ class StoryView(APIView):
     
 
 class StoryDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, pk):
         
@@ -693,8 +693,8 @@ class StoryDetailView(APIView):
     
     
 class PodcastStoryView(APIView):
-    permission_classes = [IsAuthenticated]
-    
+    permission_classes = [AllowAny]
+
     def get(self, request):
         queryset = PodcastStory.objects.all().order_by('-created_at')
 
@@ -719,7 +719,7 @@ class PodcastStoryView(APIView):
 
 
 class PodcastStoryDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [AllowAny]
 
     def get(self, request, id):
         
