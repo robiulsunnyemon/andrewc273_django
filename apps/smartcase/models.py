@@ -137,6 +137,7 @@ class PodcastStory(models.Model):
    
     title = models.CharField(max_length=255)
     files= models.FileField(upload_to='podcast_stories/%Y/%m/')
+    descriptions= models.TextField(blank=True, null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
    
@@ -147,6 +148,8 @@ class PodcastStory(models.Model):
 
     def __str__(self):
         return self.title
+    
+
 
 
 
