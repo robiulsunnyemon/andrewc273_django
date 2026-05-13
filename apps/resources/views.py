@@ -6,6 +6,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+
+from apps.smartcase.permissions import IsOwnerOrReadOnly
 from .models import LegalForm,LegalLibrary, Prison,Review,CategoryRating
 
 from .serializers import LegalFormListSerializer, LegalFormDetailSerializer,ReviewSerializer,CategorySerializer,LegalLibraryListSerializer, LegalLibrarySerializer, PrisonSerializer,LocationSerializer
@@ -272,7 +274,30 @@ class PrisonRetingDetailView(APIView):
 
 
 class CreateReviewView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsOwnerOrReadOnly]
+
+
+    def get(self, request):
+       
+        prison_id = request.query_params.get('prison_id')
+        
+        if prison_id:
+            
+            reviews = Review.objects.filter(prison_id=prison_id).order_by('-created_at')
+        else:
+           
+            reviews = Review.objects.all().order_by('-created_at')
+
+        serializer = ReviewSerializer(reviews, many=True, context={'request': request})
+        
+        return Response({
+            "success": True,
+            "message": "Reviews retrieved successfully.",
+            "data": {
+                "reviews": serializer.data
+            }
+        }, status=status.HTTP_200_OK)
+    
     def post(self, request):
         serializer = ReviewSerializer(data=request.data)
         if serializer.is_valid():
