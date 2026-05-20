@@ -205,25 +205,63 @@ class CaseSubmissionListCreateAPIView(APIView):
         # return Response(serializer.data, status=status.HTTP_200_OK)
 
    
-    def post(self, request):
-        # serializer = CaseSubmissionSerializer(data=request.data)
-        serializer = CaseSubmissionSerializer(data=request.data, context={'request': request})
+    # def post(self, request):
+    #     # serializer = CaseSubmissionSerializer(data=request.data)
+    #     serializer = CaseSubmissionSerializer(data=request.data, context={'request': request})
         
-        if serializer.is_valid():
-            case_instance = serializer.save(user=request.user)
+    #     if serializer.is_valid():
+    #         case_instance = serializer.save(user=request.user)
 
            
-            files = request.FILES.getlist('files') 
-            for f in files:
-                CaseDocument.objects.create(case=case_instance, file=f)
+    #         files = request.FILES.getlist('files') 
+    #         for f in files:
+    #             CaseDocument.objects.create(case=case_instance, file=f)
             
-            case_instance.press_release_enhanced = request.data.get('press_release', '')
-            case_instance.save()
-            #link condition add after client metting
-            # return Response(CaseSubmissionSerializer(case_instance).data, status=201)
-            return Response(CaseSubmissionSerializer(case_instance, context={'request': request}).data, status=201)
-        return Response(serializer.errors, status=400)
+    #         case_instance.press_release_enhanced = request.data.get('press_release', '')
+    #         case_instance.save()
+    #         #link condition add after client metting
+    #         # return Response(CaseSubmissionSerializer(case_instance).data, status=201)
+    #         return Response(CaseSubmissionSerializer(case_instance, context={'request': request}).data, status=201)
+    #     return Response(serializer.errors, status=400)
     
+
+  
+    def post(self, request):
+        serializer = CaseSubmissionSerializer(data=request.data,context={'request': request})
+
+        if serializer.is_valid():
+            try:
+                case_instance = serializer.save(user=request.user)
+
+                files = request.FILES.getlist('files')
+
+                for f in files:
+                    if f.size > 50 * 1024 * 1024:
+                        return Response(
+                            {
+                                "message": "File size must be less than 50MB"
+                            },
+                            status=400
+                        )
+
+                    CaseDocument.objects.create(case=case_instance,file=f)
+
+                case_instance.press_release_enhanced = request.data.get('press_release', '')
+
+                case_instance.save()
+
+                return Response(
+                {"message": "Case submitted successfully","data": CaseSubmissionSerializer(case_instance,context={'request': request}).data},status=201)
+
+            except Exception:
+                return Response(
+                {
+                    "message": "File size must be less than 50MB"
+                },
+                status=400
+            )
+
+    # return Response(serializer.errors, status=400)
 
     
     # def post(self, request):
