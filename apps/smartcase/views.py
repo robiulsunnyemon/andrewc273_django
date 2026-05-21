@@ -261,6 +261,8 @@ class CaseSubmissionListCreateAPIView(APIView):
                 status=400
             )
 
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
     # return Response(serializer.errors, status=400)
 
     
