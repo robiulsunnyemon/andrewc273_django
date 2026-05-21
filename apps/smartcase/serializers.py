@@ -207,7 +207,7 @@ class CaseSubmissionSerializer(serializers.ModelSerializer):
         
         arguments_data = validated_data.pop('legal_arguments', [])
 
-        print("DEBUG arguments_data:", arguments_data)
+        # print("DEBUG arguments_data:", arguments_data)
 
         with transaction.atomic():
             case = CaseSubmission.objects.create(**validated_data)
