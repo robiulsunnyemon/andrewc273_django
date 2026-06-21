@@ -283,8 +283,9 @@ class SocialLinkAPIView(BaseAPIView):
 
 
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
-import imghdr
 from urllib.parse import urlparse
+import io
+from PIL import Image
 import requests
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
@@ -348,7 +349,11 @@ class GoogleLoginView(SocialLoginView):
                 try:
                     r = requests.get(picture_url, timeout=10)
                     if r.status_code == 200 and r.content:
-                        img_type = imghdr.what(None, h=r.content)
+                        try:
+                            img = Image.open(io.BytesIO(r.content))
+                            img_type = img.format.lower()
+                        except Exception:
+                            img_type = None
 
                         if img_type in ("jpeg", "png", "gif", "bmp", "webp"):
                             filename = urlparse(picture_url).path.split("/")[-1]

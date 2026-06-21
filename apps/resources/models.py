@@ -99,6 +99,8 @@ class Review(models.Model):
     comment = models.TextField()
     rating = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
+    review_file = models.URLField(max_length=500, null=True, blank=True)
+
 
 class CategoryRating(models.Model):
     REVIEW_CATEGORIES = [

@@ -11,4 +11,6 @@ urlpatterns = [
     path("cards/save/", SaveCardView.as_view()),
     path("cards/list/", ListSavedCardsView.as_view()),
     path("payment/success/", StripePaymentSuccessView.as_view()),
+    path("subscription/promo-status/", PromoStatusView.as_view()),
+    path("subscription/claim-promo/", ClaimPromoView.as_view()),
 ]

@@ -1,0 +1,82 @@
+{% extends 'admin/change_list.html' %}
+
+{% block result_list %}
+    {% csrf_token %}
+    <div class="mb-6 p-5 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm flex items-center justify-between animate-fade-in">
+        <div class="flex flex-col gap-1">
+            <span class="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <span class="inline-block w-2.5 h-2.5 rounded-full {% if promo_active %}bg-green-500 animate-pulse{% else %}bg-gray-400{% endif %}" id="promo-status-dot"></span>
+                Total promo count: <span id="promo-count-label" class="font-bold text-green-600 dark:text-green-400">{{ promo_count }}</span>/{{ promo_limit }} (premium membership free)
+            </span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+                If the admin turns off the switch button, users will not be able to obtain a Premium Membership at that moment.
+            </span>
+        </div>
+        <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-850 px-4 py-2 rounded-xl border border-gray-100 dark:border-gray-800">
+            <span id="promo-status-text" class="text-sm font-semibold {% if promo_active %}text-green-600 dark:text-green-400{% else %}text-red-500{% endif %}">
+                {% if promo_active %}Active{% else %}Inactive{% endif %}
+            </span>
+            <!-- Toggle Switch -->
+            <label class="relative inline-flex items-center cursor-pointer select-none">
+                <input type="checkbox" id="promo-toggle-checkbox" class="sr-only peer" {% if promo_active %}checked{% endif %}>
+                <div class="w-11 h-6 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+            </label>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const checkbox = document.getElementById("promo-toggle-checkbox");
+            const statusText = document.getElementById("promo-status-text");
+            const statusDot = document.getElementById("promo-status-dot");
+
+            checkbox.addEventListener("change", function () {
+                const url = "{% url 'admin:subscription_subscription_toggle_promo' %}";
+                
+                // Get CSRF token
+                let csrfToken = "";
+                const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (csrfInput) {
+                    csrfToken = csrfInput.value;
+                } else {
+                    const matches = document.cookie.match(/csrftoken=([^;]+)/);
+                    if (matches) csrfToken = matches[1];
+                }
+
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.is_active) {
+                            statusText.textContent = "Active";
+                            statusText.className = "text-sm font-semibold text-green-600 dark:text-green-400";
+                            statusDot.className = "inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse";
+                            checkbox.checked = true;
+                        } else {
+                            statusText.textContent = "Inactive";
+                            statusText.className = "text-sm font-semibold text-red-500";
+                            statusDot.className = "inline-block w-2.5 h-2.5 rounded-full bg-gray-400";
+                            checkbox.checked = false;
+                        }
+                    } else {
+                        alert("Failed to toggle promo status.");
+                        checkbox.checked = !checkbox.checked; // revert
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("An error occurred. Please try again.");
+                    checkbox.checked = !checkbox.checked; // revert
+                });
+            });
+        });
+    </script>
+
+    {{ block.super }}
+{% endblock %}

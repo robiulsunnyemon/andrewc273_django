@@ -412,6 +412,8 @@ def stripe_webhook(request):
 
 
 
+
+
 # permission classes 
 from rest_framework.permissions import BasePermission
 class HasPackage1Subscription(BasePermission):
@@ -436,3 +438,62 @@ class HasPackage2Subscription(BasePermission):
         except Subscription.DoesNotExist:
             return False
         
+
+from .models import PromoConfig
+from django.utils import timezone
+
+class PromoStatusView(BaseAPIView):
+    permission_classes = []
+
+    def get(self, request):
+        promo_config = PromoConfig.get_solo()
+        current_count = Subscription.objects.filter(is_promo=True).count()
+        
+        is_eligible = True
+        if request.user and request.user.is_authenticated:
+            is_eligible = not Subscription.objects.filter(user=request.user).exists()
+            
+        data = {
+            "is_active": promo_config.is_active,
+            "max_limit": promo_config.max_limit,
+            "current_count": current_count,
+            "is_eligible": is_eligible,
+        }
+        return self.success_response("Promo status retrieved successfully.", data)
+
+
+class ClaimPromoView(BaseAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        promo_config = PromoConfig.get_solo()
+        
+        if not promo_config.is_active:
+            return self.error_response("The promotion is not active.", status_code=status.HTTP_400_BAD_REQUEST)
+            
+        current_count = Subscription.objects.filter(is_promo=True).count()
+        if current_count >= promo_config.max_limit:
+            return self.error_response("The promotion limit has been reached.", status_code=status.HTTP_400_BAD_REQUEST)
+            
+        if Subscription.objects.filter(user=request.user).exists():
+            return self.error_response("You already have an active subscription.", status_code=status.HTTP_400_BAD_REQUEST)
+            
+        # Create a free lifetime package-1 (Premium) subscription
+        subscription = Subscription.objects.create(
+            user=request.user,
+            package="package-1",
+            billing_interval="lifetime",
+            is_active=True,
+            auto_renew=False,
+            is_promo=True,
+            current_period_start=timezone.now(),
+            current_period_end=None
+        )
+        
+        data = {
+            "package": subscription.package,
+            "billing_interval": subscription.billing_interval,
+            "is_active": subscription.is_active,
+            "is_promo": subscription.is_promo,
+        }
+        return self.success_response("Free Premium lifetime membership claimed successfully!", data, status_code=status.HTTP_201_CREATED)

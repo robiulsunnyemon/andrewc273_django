@@ -150,27 +150,51 @@ class CategorySerializer(serializers.ModelSerializer):
 #         model = User
 #         fields = ['id', 'first_name', 'last_name']
 
+import json
+import cloudinary.uploader
+
 class ReviewSerializer(serializers.ModelSerializer):
     user = PublicProfileSerializer(source='user.profile', read_only=True)
-    # 
     categories = CategorySerializer(many=True, source='category_ratings')
+    file = serializers.FileField(write_only=True, required=False, allow_null=True)
+    review_file = serializers.URLField(read_only=True)
 
     class Meta:
         model = Review
-        fields = ['id', 'user', 'prison', 'comment', 'rating', 'created_at', 'categories']
+        fields = ['id', 'user', 'prison', 'comment', 'rating', 'created_at', 'categories', 'file', 'review_file']
+
+    def to_internal_value(self, data):
+        # multipart/form-data হলে categories ডাটা স্ট্রিং আকারে আসতে পারে, তা JSON এ কনভার্ট করা হচ্ছে
+        if 'categories' in data and isinstance(data['categories'], str):
+            try:
+                mutable_data = data.copy() if hasattr(data, 'copy') else data.dict()
+                mutable_data['categories'] = json.loads(data['categories'])
+                data = mutable_data
+            except json.JSONDecodeError:
+                pass
+        return super().to_internal_value(data)
 
     def create(self, validated_data):
-       
+        file = validated_data.pop('file', None)
         categories_data = validated_data.pop('category_ratings', []) 
         
-      
-        review = Review.objects.create(**validated_data)
+        review_file_url = None
+        if file:
+            # Cloudinary-তে ফাইল আপলোড (এটি ইমেজ এবং পিডিএফ দুটোই রিসিভ করবে)
+            upload_result = cloudinary.uploader.upload(
+                file,
+                resource_type="auto",  # auto দিলে ইমেজ এবং পিডিএফ উভয় ফাইলই হ্যান্ডেল করতে পারে
+                folder="reviews/"
+            )
+            review_file_url = upload_result.get('secure_url')
+            
+        review = Review.objects.create(review_file=review_file_url, **validated_data)
 
-        
         for cat in categories_data:
             CategoryRating.objects.create(review=review, **cat)
 
         return review
+
     
 # class ReviewSerializer(serializers.ModelSerializer):
 #     # user = PublicProfileSerializer(read_only=True)
