@@ -47,10 +47,16 @@ class LegalLibrary(models.Model):
 
 
 class Prison(models.Model):
-    code = models.CharField(max_length=10, unique=True)
+    code = models.CharField(max_length=30, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255)
     name_title = models.CharField(max_length=255, null=True, blank=True)
     name_display = models.CharField(max_length=255, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            import uuid
+            self.code = f"LOC-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
 
     type = models.CharField(max_length=50, null=True, blank=True)
     security_level = models.CharField(max_length=50, null=True, blank=True)

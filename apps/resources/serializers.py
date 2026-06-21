@@ -70,7 +70,7 @@ class PrisonSerializer(serializers.ModelSerializer):
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prison
-        fields = ['name', 'latitude', 'longitude']
+        fields = ['id', 'name', 'latitude', 'longitude', 'type']
 
 
 

@@ -44,6 +44,15 @@ class PrisonAdmin(ModelAdmin):
     list_display = ('code', 'name', 'city', 'state', 'security_level')
     search_fields = ('name', 'city', 'state')
 
+    class Media:
+        css = {
+            'all': ('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',)
+        }
+        js = (
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+            'admin/js/prison_map_picker.js',
+        )
+
 
 #legal library
 
