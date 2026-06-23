@@ -68,21 +68,21 @@ class PrisonAPITestCase(APITestCase):
     def test_prison_list_filter_prison(self):
         response = self.client.get('/api/v1/prisons/', {'category': 'prison'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Excludes RRM and HALFWAY_HOUSE (should be 2 items: PR1, PR2)
-        self.assertEqual(response.data['count'], 2)
+        # Excludes only HALFWAY_HOUSE (should be 3 items: PR1, PR2, HH1)
+        self.assertEqual(response.data['count'], 3)
         codes = [item['code'] for item in response.data['results']]
         self.assertIn("PR1", codes)
         self.assertIn("PR2", codes)
-        self.assertNotIn("HH1", codes)
+        self.assertIn("HH1", codes)
         self.assertNotIn("HH2", codes)
 
     def test_prison_list_filter_halfway_house(self):
         response = self.client.get('/api/v1/prisons/', {'category': 'halfway_house'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Only RRM and HALFWAY_HOUSE (should be 2 items: HH1, HH2)
-        self.assertEqual(response.data['count'], 2)
+        # Only HALFWAY_HOUSE (should be 1 item: HH2)
+        self.assertEqual(response.data['count'], 1)
         codes = [item['code'] for item in response.data['results']]
-        self.assertIn("HH1", codes)
+        self.assertNotIn("HH1", codes)
         self.assertIn("HH2", codes)
         self.assertNotIn("PR1", codes)
         self.assertNotIn("PR2", codes)
@@ -90,15 +90,16 @@ class PrisonAPITestCase(APITestCase):
     def test_locations_list_filter_prison(self):
         response = self.client.get('/api/v1/locations/', {'category': 'prison'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 3)
         names = [item['name'] for item in response.data]
         self.assertIn(self.prison1.name, names)
-        self.assertNotIn(self.halfway_house1.name, names)
+        self.assertIn(self.halfway_house1.name, names)
 
     def test_locations_list_filter_halfway_house(self):
         response = self.client.get('/api/v1/locations/', {'category': 'halfway_house'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 1)
         names = [item['name'] for item in response.data]
-        self.assertIn(self.halfway_house1.name, names)
+        self.assertNotIn(self.halfway_house1.name, names)
+        self.assertIn(self.halfway_house2.name, names)
         self.assertNotIn(self.prison1.name, names)

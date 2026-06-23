@@ -110,9 +110,9 @@ class PrisonListView(ListAPIView):
         category = self.request.query_params.get('category', None)
 
         if category == 'halfway_house':
-            queryset = queryset.filter(type__in=['RRM', 'HALFWAY_HOUSE'])
+            queryset = queryset.filter(type='HALFWAY_HOUSE')
         elif category == 'prison':
-            queryset = queryset.exclude(type__in=['RRM', 'HALFWAY_HOUSE'])
+            queryset = queryset.exclude(type='HALFWAY_HOUSE')
         
         if search_query:
             queryset = queryset.filter(name_display__istartswith=search_query)
@@ -243,9 +243,9 @@ class LocationListView(APIView):
         category = request.query_params.get('category', None)
         queryset = Prison.objects.all()
         if category == 'halfway_house':
-            queryset = queryset.filter(type__in=['RRM', 'HALFWAY_HOUSE'])
+            queryset = queryset.filter(type='HALFWAY_HOUSE')
         elif category == 'prison':
-            queryset = queryset.exclude(type__in=['RRM', 'HALFWAY_HOUSE'])
+            queryset = queryset.exclude(type='HALFWAY_HOUSE')
             
         serializer = LocationSerializer(queryset, many=True)
         return Response(serializer.data)
