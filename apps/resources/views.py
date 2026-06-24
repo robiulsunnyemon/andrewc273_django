@@ -241,7 +241,7 @@ class LegalLibraryDetailView(GenericAPIView):
 class LocationListView(APIView):
     def get(self, request):
         category = request.query_params.get('category', None)
-        queryset = Prison.objects.all()
+        queryset = Prison.objects.exclude(latitude=0.0, longitude=0.0).filter(latitude__isnull=False, longitude__isnull=False)
         if category == 'halfway_house':
             queryset = queryset.filter(type='HALFWAY_HOUSE')
         elif category == 'prison':

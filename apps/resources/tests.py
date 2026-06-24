@@ -34,28 +34,36 @@ class PrisonAPITestCase(APITestCase):
             name="Federal Prison Camp Alderson",
             type="FPC",
             city="Alderson",
-            state="WV"
+            state="WV",
+            latitude=37.7244,
+            longitude=-80.6424
         )
         self.prison2 = Prison.objects.create(
             code="PR2",
             name="FCI Aliceville",
             type="FCI",
             city="Aliceville",
-            state="AL"
+            state="AL",
+            latitude=33.1294,
+            longitude=-88.1614
         )
         self.halfway_house1 = Prison.objects.create(
             code="HH1",
             name="Atlanta RRM",
             type="RRM",
             city="Atlanta",
-            state="GA"
+            state="GA",
+            latitude=33.7490,
+            longitude=-84.3880
         )
         self.halfway_house2 = Prison.objects.create(
             code="HH2",
             name="Custom Halfway House",
             type="HALFWAY_HOUSE",
             city="Miami",
-            state="FL"
+            state="FL",
+            latitude=25.7617,
+            longitude=-80.1918
         )
 
     def test_prison_list_no_filter(self):
