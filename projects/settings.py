@@ -94,7 +94,7 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
 
     'apps.newsletter',
-
+    'apps.message_board',
 ]
 
 

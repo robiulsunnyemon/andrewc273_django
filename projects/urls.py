@@ -23,6 +23,7 @@ urlpatterns = [
     # path('api/v1/', include('apps.prisons.urls')),
 
     path('api/v1/', include('apps.newsletter.urls')),
+    path('api/v1/', include('apps.message_board.urls')),
 ]
 
 
