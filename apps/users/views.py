@@ -60,8 +60,7 @@ class SignupView(BaseAPIView):
             # user.generate_otp()
             # user.save()
            
-           # ONLY TEST OTP
-            user.generate_otp(test_otp="1234")
+            user.generate_otp()
             
 
             # user.save()
@@ -316,6 +315,7 @@ class GoogleLoginView(SocialLoginView):
 
             # Ensure profile exists
             profile, created = Profile.objects.get_or_create(user=user)
+            SocialLink.objects.get_or_create(user=user)
 
             # Google data
             social_account = user.socialaccount_set.first()

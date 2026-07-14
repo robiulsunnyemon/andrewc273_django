@@ -95,7 +95,7 @@ class ResendVerificationOTPSerializer(serializers.Serializer):
 
     def save(self, **kwargs):
         user = User.objects.get(email=self.validated_data["email"])
-        user.generate_otp(test_otp="1234")
+        user.generate_otp()
         send_mail(
             subject="Verify your account (resend)",
             message=f"Your verification code is {user.otp}. It expires in 10 minutes.",
@@ -124,7 +124,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError("User with this email does not exist.")
 
-        user.generate_otp(test_otp="1234")
+        user.generate_otp()
         send_mail(
             "Password Reset OTP",
             f"Your OTP for password reset is {user.otp}",
