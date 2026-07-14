@@ -388,21 +388,25 @@ class GoogleLoginView(SocialLoginView):
                 {
                     "success": True,
                     "message": "Google login successful.",
-                    "tokens": {
-                        "refresh": str(refresh),
-                        "access": str(refresh.access_token),
-                    },
-                    "user": {
-                        "id": user.id,
-                        "email": user.email,
-                        "first_name": profile.first_name,
-                        "last_name": profile.last_name,
-                        "name": profile.name,
-                        "avatar": (
-                            request.build_absolute_uri(profile.avatar.url)
-                            if profile.avatar else None
-                        ),
-                    },
+                    "status": status.HTTP_200_OK,
+                    "data": {
+                        "tokens": {
+                            "refresh": str(refresh),
+                            "access": str(refresh.access_token),
+                        },
+                        "user": {
+                            "id": user.id,
+                            "email": user.email,
+                            "is_staff": user.is_staff,
+                            "first_name": profile.first_name,
+                            "last_name": profile.last_name,
+                            "name": profile.name,
+                            "avatar": (
+                                request.build_absolute_uri(profile.avatar.url)
+                                if profile.avatar else None
+                            ),
+                        },
+                    }
                 },
                 status=status.HTTP_200_OK
             )
