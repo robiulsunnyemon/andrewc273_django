@@ -144,7 +144,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
 .idea
 .venv
 env/
@@ -185,3 +184,5 @@ cython_debug/
 #.idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/django
+config.bat
+node_modules
